@@ -1,0 +1,208 @@
+'use client'
+
+import dynamic from 'next/dynamic'
+import { useState, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Plus, Minus, Locate, Globe, Filter, X } from 'lucide-react'
+import type { Parcel, MapLayers, LayerKey } from '@/types/map'
+import { PARCELS, KYIV_CENTER, UA_BOUNDS } from '@/lib/mapData'
+import TopBar from '@/components/layout/TopBar'
+import LeftPanel from '@/components/map/LeftPanel'
+import ParcelPanel from '@/components/map/ParcelPanel'
+
+// Leaflet is browser-only — dynamic import with ssr:false
+const CadastralMap = dynamic(() => import('@/components/map/CadastralMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 flex items-center justify-center bg-surface-blue">
+      <span className="text-small text-gray-500">Завантаження мапи…</span>
+    </div>
+  ),
+})
+
+const DEFAULT_LAYERS: MapLayers = {
+  cadastr: true,
+  satellite: false,
+  ortho: false,
+  soil: false,
+  otg: false,
+  reserve: false,
+}
+
+function zoomIn()  { (window as Window & { __maynoMap?: L.Map }).__maynoMap?.zoomIn() }
+function zoomOut() { (window as Window & { __maynoMap?: L.Map }).__maynoMap?.zoomOut() }
+function flyHome() { (window as Window & { __maynoMap?: L.Map }).__maynoMap?.flyTo(KYIV_CENTER, 18) }
+function flyUA()   { (window as Window & { __maynoMap?: L.Map }).__maynoMap?.flyToBounds(UA_BOUNDS as L.LatLngBoundsExpression, { padding: [20, 20] }) }
+
+function MapControls({ hasPanel }: { hasPanel: boolean }) {
+  return (
+    <div className={[
+      'absolute bottom-6 flex flex-col gap-1.5 z-[5] transition-all duration-200',
+      hasPanel ? 'right-[444px]' : 'right-6',
+    ].join(' ')}>
+      <button type="button" onClick={zoomIn}  className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Збільшити"><Plus size={20} strokeWidth={1.5} /></button>
+      <button type="button" onClick={zoomOut} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Зменшити"><Minus size={20} strokeWidth={1.5} /></button>
+      <div className="h-2" />
+      <button type="button" onClick={flyHome} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Київ"><Locate size={20} strokeWidth={1.5} /></button>
+      <button type="button" onClick={flyUA}   className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Вся Україна"><Globe size={18} strokeWidth={1.5} /></button>
+    </div>
+  )
+}
+
+export default function MapClient() {
+  const searchParams = useSearchParams()
+  const initialQuery = searchParams.get('q') ?? ''
+
+  const [selected, setSelected] = useState<Parcel | null>(PARCELS[0])
+  const [searchValue, setSearchValue] = useState(initialQuery)
+  const [layers, setLayers] = useState<MapLayers>(DEFAULT_LAYERS)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
+  const toggleLayer = useCallback((key: LayerKey) => {
+    setLayers((prev) => ({ ...prev, [key]: !prev[key] }))
+  }, [])
+
+  const handleOrder = useCallback((serviceId: string) => {
+    // TODO: Sprint 3 — redirect to login if not authenticated, then to payment
+    console.info('order service:', serviceId)
+  }, [])
+
+  const handleSelect = useCallback((parcel: Parcel) => {
+    setSelected(parcel)
+  }, [])
+
+  // ── DESKTOP LAYOUT ──────────────────────────────────────────
+  return (
+    <div className="flex flex-col h-screen overflow-hidden">
+      <TopBar />
+
+      <div className="flex flex-1 min-h-0">
+
+        {/* Left panel — desktop only */}
+        <aside className="hidden md:flex w-map-left flex-shrink-0 bg-white border-r border-gray-100 flex-col overflow-hidden">
+          <LeftPanel
+            layers={layers}
+            onToggleLayer={toggleLayer}
+            searchValue={searchValue}
+            onSearchChange={setSearchValue}
+          />
+        </aside>
+
+        {/* Map center */}
+        <div className="flex-1 relative bg-surface-blue overflow-hidden">
+          <CadastralMap
+            selectedId={selected?.id ?? null}
+            onSelect={handleSelect}
+            layers={layers}
+          />
+
+          {/* Hint badge */}
+          <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 bg-white rounded px-4 py-2.5 shadow text-[13px] z-[5]">
+            <span className="w-2 h-2 rounded-full bg-green flex-shrink-0" />
+            Клацніть будь-яку зелену ділянку — побачите дані і ціни
+          </div>
+
+          {/* Desktop map controls */}
+          <div className="hidden md:flex">
+            <MapControls hasPanel={!!selected} />
+          </div>
+
+          {/* Mobile search bar */}
+          <div className="flex md:hidden items-center gap-2 absolute top-0 left-0 right-0 z-[5] px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
+            <input
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Адреса або кадастровий №"
+              className="flex-1 h-10 pl-4 pr-3 text-small border border-gray-300 rounded focus:outline-none focus:border-black"
+            />
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              className="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+              aria-label="Фільтри"
+            >
+              <Filter size={18} strokeWidth={1.5} />
+            </button>
+          </div>
+
+          {/* Mobile controls (above bottom sheet) */}
+          <div className="flex md:hidden flex-col gap-1.5 absolute right-3 z-[5]"
+            style={{ bottom: selected ? 'calc(70% + 12px)' : '80px', transition: 'bottom 200ms' }}>
+            <button type="button" onClick={zoomIn}  className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Plus size={20} strokeWidth={1.5} /></button>
+            <button type="button" onClick={zoomOut} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Minus size={20} strokeWidth={1.5} /></button>
+            <button type="button" onClick={flyHome} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Locate size={20} strokeWidth={1.5} /></button>
+          </div>
+        </div>
+
+        {/* Right panel — desktop */}
+        {selected && (
+          <div className="hidden md:block">
+            <ParcelPanel parcel={selected} onClose={() => setSelected(null)} onOrder={handleOrder} />
+          </div>
+        )}
+      </div>
+
+      {/* Mobile bottom sheet */}
+      {selected && (
+        <div className="md:hidden absolute bottom-0 left-0 right-0 h-[70%] bg-white rounded-t-2xl shadow-lg flex flex-col z-30"
+          style={{ animation: 'slideUp 300ms cubic-bezier(0.2,0,0,1)' }}>
+          <div className="flex justify-center pt-2 pb-1">
+            <div className="w-10 h-1 rounded-full bg-gray-300" />
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <ParcelPanel parcel={selected} onClose={() => setSelected(null)} onOrder={handleOrder} mobile />
+          </div>
+          <div className="p-3 border-t border-gray-100 bg-white">
+            <button
+              type="button"
+              onClick={() => handleOrder('full')}
+              className="flex items-center justify-center w-full h-[52px] rounded-full bg-green text-white font-medium text-body hover:bg-green-hover transition-colors"
+            >
+              Замовити повний звіт за 400 грн
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile filters drawer */}
+      {filtersOpen && (
+        <div className="md:hidden fixed inset-0 z-[100] bg-black/40" onClick={() => setFiltersOpen(false)}>
+          <aside
+            className="absolute top-0 right-0 bottom-0 w-[90%] max-w-[360px] bg-white flex flex-col shadow-lg"
+            style={{ animation: 'slideInRight 250ms cubic-bezier(0.2,0,0,1)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+              <h2 className="text-[17px] font-bold tracking-[-0.005em]">Фільтри і шари</h2>
+              <button type="button" onClick={() => setFiltersOpen(false)} className="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100">
+                <X size={20} strokeWidth={1.5} />
+              </button>
+            </div>
+            <LeftPanel
+              layers={layers}
+              onToggleLayer={toggleLayer}
+              searchValue={searchValue}
+              onSearchChange={setSearchValue}
+            />
+          </aside>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .mayno-tooltip {
+          font-family: var(--font-jetbrains, monospace);
+          font-size: 12px;
+          padding: 4px 8px;
+          background: #0A0A0A;
+          color: #fff;
+          border: none;
+          border-radius: 4px;
+          white-space: nowrap;
+        }
+        .mayno-tooltip::before { display: none; }
+      `}</style>
+    </div>
+  )
+}
