@@ -1,0 +1,205 @@
+// Mayno — Prisma schema
+// Sprint 3: PostgreSQL + PostGIS (через pgvector для геоданих — Sprint 4)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──────────────────────────────────────────────────────────────
+
+enum Plan {
+  FREE
+  PERSONAL
+  REALTOR
+  AGENCY
+  ENTERPRISE
+}
+
+enum OrderStatus {
+  PENDING      // оплата очікується
+  PAID         // оплачено, формується
+  PROCESSING   // запит до API реєстру
+  DONE         // готово, PDF доступний
+  FAILED       // помилка від реєстру
+  REFUNDED     // повернуто кошти
+}
+
+enum OrderType {
+  DZK          // Витяг з ДЗК
+  DRRP         // Витяг з ДРРП
+  FULL         // Повний звіт (DZK + DRRP + AI)
+  NGO          // Нормативна грошова оцінка
+  PLAN         // Кадастровий план
+  OWNER_SEARCH // Пошук власника
+  EXPERT       // Експертна оцінка
+  GEODESY      // Геодезія
+}
+
+enum PaymentProvider {
+  LIQPAY
+  FONDY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+// ── User ───────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Ідентифікація через ЕЦП / Bank ID
+  bankIdSub   String?  @unique // sub із Bank ID НБУ JWT
+  diiaIdSub   String?  @unique // sub із Дія.Підпис
+  // ПІБ і РНОКПП — лише після ідентифікації, не в публічному пошуку (Закон № 4292-IX)
+  fullName    String?
+  rnokpp      String?  // РНОКПП (ІПН)
+  phone       String?
+  email       String?  @unique
+
+  // Підписка
+  plan        Plan     @default(FREE)
+  planExpires DateTime?
+
+  // Зв'язки
+  sessions    Session[]
+  orders      Order[]
+  monitoring  MonitoringObject[]
+  payments    Payment[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// ── Session ────────────────────────────────────────────────────────────
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique @default(cuid())
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+
+  @@index([token])
+  @@map("sessions")
+}
+
+// ── Order ──────────────────────────────────────────────────────────────
+
+model Order {
+  id        String      @id @default(cuid())
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+
+  type      OrderType
+  status    OrderStatus @default(PENDING)
+
+  // Об'єкт замовлення
+  kadnum    String      // кадастровий номер
+  // Точна адреса — не зберігаємо для юросіб (Закон № 4292-IX)
+  regionHint String?   // область/район/місто — дозволено
+
+  // Результат
+  pdfUrl    String?     // S3 / Vercel Blob URL
+  pdfExpiry DateTime?   // через 30 днів — видаляємо (ст. про не-паралельний реєстр)
+  rawJson   Json?       // відповідь від API реєстру (зашифрована Sprint 4)
+
+  // Ціна
+  pricePaid Int         // в копійках (грн × 100)
+
+  payment   Payment?
+
+  @@index([userId, createdAt])
+  @@index([kadnum])
+  @@map("orders")
+}
+
+// ── Payment ────────────────────────────────────────────────────────────
+
+model Payment {
+  id        String          @id @default(cuid())
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  orderId   String          @unique
+  order     Order           @relation(fields: [orderId], references: [id])
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+
+  provider  PaymentProvider @default(LIQPAY)
+  status    PaymentStatus   @default(PENDING)
+
+  amount    Int             // в копійках
+  currency  String          @default("UAH")
+
+  // LiqPay / Fondy transaction IDs
+  externalId  String?
+  checkoutUrl String?
+
+  // Webhook payload (для відлагодження)
+  webhookData Json?
+
+  @@index([userId])
+  @@map("payments")
+}
+
+// ── Monitoring ─────────────────────────────────────────────────────────
+
+model MonitoringObject {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  kadnum    String
+  label     String?  // кастомна назва від користувача
+
+  // Останній відомий стан (знімок з реєстру)
+  lastSnapshot Json?
+  lastChecked  DateTime?
+  lastChanged  DateTime? // коли востаннє зафіксовано зміну
+
+  active    Boolean  @default(true)
+  // 19 грн/міс — списується з балансу або через підписку
+  paidUntil DateTime?
+
+  alerts    MonitoringAlert[]
+
+  @@unique([userId, kadnum])
+  @@index([userId])
+  @@map("monitoring_objects")
+}
+
+model MonitoringAlert {
+  id         String           @id @default(cuid())
+  createdAt  DateTime         @default(now())
+
+  objectId   String
+  object     MonitoringObject @relation(fields: [objectId], references: [id], onDelete: Cascade)
+
+  changeType String   // "owner_changed" | "encumbrance_added" | "restriction_added" | ...
+  details    Json     // diff між snapshots
+  notified   Boolean  @default(false) // чи надіслано email/telegram
+
+  @@index([objectId])
+  @@map("monitoring_alerts")
+}
