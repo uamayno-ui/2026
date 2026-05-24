@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Globe, Compass, Satellite, Layers, MapPin, ShieldCheck, ChevronDown, Ruler, Route, Download } from 'lucide-react'
+import { Search, Globe, Satellite, ChevronDown, Ruler, Route, Download } from 'lucide-react'
 import type { MapLayers, LayerKey } from '@/types/map'
 
 interface LeftPanelProps {
@@ -12,12 +12,8 @@ interface LeftPanelProps {
 }
 
 const LAYER_CONFIG: { key: LayerKey; icon: React.ReactNode; label: string }[] = [
-  { key: 'cadastr',   icon: <Globe size={18} strokeWidth={1.5} />,      label: 'Кадастр' },
-  { key: 'ortho',     icon: <Compass size={18} strokeWidth={1.5} />,    label: 'Ортофото' },
-  { key: 'satellite', icon: <Satellite size={18} strokeWidth={1.5} />,  label: 'Супутник' },
-  { key: 'soil',      icon: <Layers size={18} strokeWidth={1.5} />,     label: 'Ґрунти' },
-  { key: 'otg',       icon: <MapPin size={18} strokeWidth={1.5} />,     label: 'Межі ОТГ' },
-  { key: 'reserve',   icon: <ShieldCheck size={18} strokeWidth={1.5} />, label: 'Природно-заповідний фонд' },
+  { key: 'cadastr',   icon: <Globe size={18} strokeWidth={1.5} />,     label: 'Кадастр'  },
+  { key: 'satellite', icon: <Satellite size={18} strokeWidth={1.5} />, label: 'Супутник' },
 ]
 
 const PURPOSES = ['Житло', 'ОСГ', 'Комерційна', 'Громадська']

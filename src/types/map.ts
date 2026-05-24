@@ -14,11 +14,7 @@ export interface Parcel {
 export interface MapLayers {
   cadastr: boolean
   satellite: boolean
-  ortho: boolean
-  soil: boolean
-  otg: boolean
-  reserve: boolean
 }
 
-export const LAYER_KEYS = ['cadastr', 'satellite', 'ortho', 'soil', 'otg', 'reserve'] as const
+export const LAYER_KEYS = ['cadastr', 'satellite'] as const
 export type LayerKey = typeof LAYER_KEYS[number]

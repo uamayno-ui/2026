@@ -1,5 +1,51 @@
 import type { Parcel } from '@/types/map'
 
+// ── GeoJSON helpers ───────────────────────────────────────────────────
+// mapData stores coords as [lat, lng] (Leaflet convention)
+// GeoJSON / Mapbox GL requires [lng, lat]
+
+type GeoJSONFC = {
+  type: 'FeatureCollection'
+  features: Array<{
+    type: 'Feature'
+    id: string
+    properties: Record<string, string>
+    geometry: { type: 'Polygon'; coordinates: number[][][] }
+  }>
+}
+
+export function parcelsToGeoJSON(parcels: Parcel[]): GeoJSONFC {
+  return {
+    type: 'FeatureCollection',
+    features: parcels.map((p) => {
+      const ring = p.polygon.map(([lat, lng]) => [lng, lat])
+      ring.push(ring[0]) // close ring
+      return {
+        type: 'Feature',
+        id: p.id,
+        properties: { id: p.id, kadnum: p.kadnum, area: p.area, purpose: p.purpose },
+        geometry: { type: 'Polygon', coordinates: [ring] },
+      }
+    }),
+  }
+}
+
+export function decoToGeoJSON(polys: [number, number][][]): GeoJSONFC {
+  return {
+    type: 'FeatureCollection',
+    features: polys.map((poly, i) => {
+      const ring = poly.map(([lat, lng]) => [lng, lat])
+      ring.push(ring[0])
+      return {
+        type: 'Feature',
+        id: `deco-${i}`,
+        properties: {},
+        geometry: { type: 'Polygon', coordinates: [ring] },
+      }
+    }),
+  }
+}
+
 export const KYIV_CENTER: [number, number] = [50.4498, 30.5235]
 export const UA_BOUNDS: [[number, number], [number, number]] = [[44.3, 22.1], [52.4, 40.2]]
 

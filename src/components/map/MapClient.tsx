@@ -1,16 +1,17 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Plus, Minus, Locate, Globe, Filter, X } from 'lucide-react'
+import type { MapRef } from 'react-map-gl/mapbox'
 import type { Parcel, MapLayers, LayerKey } from '@/types/map'
-import { PARCELS, KYIV_CENTER, UA_BOUNDS } from '@/lib/mapData'
+import { PARCELS, KYIV_CENTER } from '@/lib/mapData'
 import TopBar from '@/components/layout/TopBar'
 import LeftPanel from '@/components/map/LeftPanel'
 import ParcelPanel from '@/components/map/ParcelPanel'
 
-// Leaflet is browser-only — dynamic import with ssr:false
+// Mapbox GL is browser-only — dynamic import with ssr:false
 const CadastralMap = dynamic(() => import('@/components/map/CadastralMap'), {
   ssr: false,
   loading: () => (
@@ -23,47 +24,63 @@ const CadastralMap = dynamic(() => import('@/components/map/CadastralMap'), {
 const DEFAULT_LAYERS: MapLayers = {
   cadastr: true,
   satellite: false,
-  ortho: false,
-  soil: false,
-  otg: false,
-  reserve: false,
 }
 
-function zoomIn()  { (window as Window & { __maynoMap?: L.Map }).__maynoMap?.zoomIn() }
-function zoomOut() { (window as Window & { __maynoMap?: L.Map }).__maynoMap?.zoomOut() }
-function flyHome() { (window as Window & { __maynoMap?: L.Map }).__maynoMap?.flyTo(KYIV_CENTER, 18) }
-function flyUA()   { (window as Window & { __maynoMap?: L.Map }).__maynoMap?.flyToBounds(UA_BOUNDS as L.LatLngBoundsExpression, { padding: [20, 20] }) }
+// ── Map controls (zoom / navigate) ───────────────────────────────────
+function MapControls({
+  hasPanel,
+  mapRef,
+}: {
+  hasPanel: boolean
+  mapRef: React.RefObject<MapRef | null>
+}) {
+  const zoomIn  = () => mapRef.current?.zoomIn()
+  const zoomOut = () => mapRef.current?.zoomOut()
+  const flyHome = () =>
+    mapRef.current?.flyTo({
+      center: [KYIV_CENTER[1], KYIV_CENTER[0]], // [lng, lat]
+      zoom: 17,
+    })
+  const flyUA = () =>
+    mapRef.current?.fitBounds(
+      [[22.1, 44.3], [40.2, 52.4]], // [[minLng, minLat], [maxLng, maxLat]]
+      { padding: 24 },
+    )
 
-function MapControls({ hasPanel }: { hasPanel: boolean }) {
   return (
-    <div className={[
-      'absolute bottom-6 flex flex-col gap-1.5 z-[5] transition-all duration-200',
-      hasPanel ? 'right-[444px]' : 'right-6',
-    ].join(' ')}>
-      <button type="button" onClick={zoomIn}  className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Збільшити"><Plus size={20} strokeWidth={1.5} /></button>
+    <div
+      className={[
+        'absolute bottom-6 flex flex-col gap-1.5 z-[5] transition-all duration-200',
+        hasPanel ? 'right-[444px]' : 'right-6',
+      ].join(' ')}
+    >
+      <button type="button" onClick={zoomIn}  className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Збільшити"><Plus  size={20} strokeWidth={1.5} /></button>
       <button type="button" onClick={zoomOut} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Зменшити"><Minus size={20} strokeWidth={1.5} /></button>
       <div className="h-2" />
-      <button type="button" onClick={flyHome} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Київ"><Locate size={20} strokeWidth={1.5} /></button>
+      <button type="button" onClick={flyHome} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Київ"><Locate  size={20} strokeWidth={1.5} /></button>
       <button type="button" onClick={flyUA}   className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Вся Україна"><Globe size={18} strokeWidth={1.5} /></button>
     </div>
   )
 }
 
+// ── Main client component ─────────────────────────────────────────────
 export default function MapClient() {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('q') ?? ''
 
-  const [selected, setSelected] = useState<Parcel | null>(PARCELS[0])
+  const [selected, setSelected]       = useState<Parcel | null>(PARCELS[0])
   const [searchValue, setSearchValue] = useState(initialQuery)
-  const [layers, setLayers] = useState<MapLayers>(DEFAULT_LAYERS)
+  const [layers, setLayers]           = useState<MapLayers>(DEFAULT_LAYERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
+
+  const mapRef = useRef<MapRef>(null)
 
   const toggleLayer = useCallback((key: LayerKey) => {
     setLayers((prev) => ({ ...prev, [key]: !prev[key] }))
   }, [])
 
   const handleOrder = useCallback((serviceId: string) => {
-    // TODO: Sprint 3 — redirect to login if not authenticated, then to payment
+    // TODO Sprint 3: redirect to login → payment
     console.info('order service:', serviceId)
   }, [])
 
@@ -71,14 +88,13 @@ export default function MapClient() {
     setSelected(parcel)
   }, [])
 
-  // ── DESKTOP LAYOUT ──────────────────────────────────────────
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <TopBar />
 
       <div className="flex flex-1 min-h-0">
 
-        {/* Left panel — desktop only */}
+        {/* ── Left panel — desktop ── */}
         <aside className="hidden md:flex w-map-left flex-shrink-0 bg-white border-r border-gray-100 flex-col overflow-hidden">
           <LeftPanel
             layers={layers}
@@ -88,23 +104,24 @@ export default function MapClient() {
           />
         </aside>
 
-        {/* Map center */}
+        {/* ── Map ── */}
         <div className="flex-1 relative bg-surface-blue overflow-hidden">
           <CadastralMap
             selectedId={selected?.id ?? null}
             onSelect={handleSelect}
             layers={layers}
+            mapRef={mapRef}
           />
 
           {/* Hint badge */}
           <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 bg-white rounded px-4 py-2.5 shadow text-[13px] z-[5]">
             <span className="w-2 h-2 rounded-full bg-green flex-shrink-0" />
-            Клацніть будь-яку зелену ділянку — побачите дані і ціни
+            Клацніть будь-яку ділянку — побачите дані і ціни
           </div>
 
           {/* Desktop map controls */}
           <div className="hidden md:flex">
-            <MapControls hasPanel={!!selected} />
+            <MapControls hasPanel={!!selected} mapRef={mapRef} />
           </div>
 
           {/* Mobile search bar */}
@@ -125,16 +142,18 @@ export default function MapClient() {
             </button>
           </div>
 
-          {/* Mobile controls (above bottom sheet) */}
-          <div className="flex md:hidden flex-col gap-1.5 absolute right-3 z-[5]"
-            style={{ bottom: selected ? 'calc(70% + 12px)' : '80px', transition: 'bottom 200ms' }}>
-            <button type="button" onClick={zoomIn}  className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Plus size={20} strokeWidth={1.5} /></button>
-            <button type="button" onClick={zoomOut} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Minus size={20} strokeWidth={1.5} /></button>
-            <button type="button" onClick={flyHome} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Locate size={20} strokeWidth={1.5} /></button>
+          {/* Mobile zoom controls */}
+          <div
+            className="flex md:hidden flex-col gap-1.5 absolute right-3 z-[5]"
+            style={{ bottom: selected ? 'calc(70% + 12px)' : '80px', transition: 'bottom 200ms' }}
+          >
+            <button type="button" onClick={() => mapRef.current?.zoomIn()}  className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Plus  size={20} strokeWidth={1.5} /></button>
+            <button type="button" onClick={() => mapRef.current?.zoomOut()} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Minus size={20} strokeWidth={1.5} /></button>
+            <button type="button" onClick={() => mapRef.current?.flyTo({ center: [KYIV_CENTER[1], KYIV_CENTER[0]], zoom: 17 })} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Locate size={20} strokeWidth={1.5} /></button>
           </div>
         </div>
 
-        {/* Right panel — desktop */}
+        {/* ── Right panel — desktop ── */}
         {selected && (
           <div className="hidden md:block">
             <ParcelPanel parcel={selected} onClose={() => setSelected(null)} onOrder={handleOrder} />
@@ -142,10 +161,12 @@ export default function MapClient() {
         )}
       </div>
 
-      {/* Mobile bottom sheet */}
+      {/* ── Mobile bottom sheet ── */}
       {selected && (
-        <div className="md:hidden absolute bottom-0 left-0 right-0 h-[70%] bg-white rounded-t-2xl shadow-lg flex flex-col z-30"
-          style={{ animation: 'slideUp 300ms cubic-bezier(0.2,0,0,1)' }}>
+        <div
+          className="md:hidden absolute bottom-0 left-0 right-0 h-[70%] bg-white rounded-t-2xl shadow-lg flex flex-col z-30"
+          style={{ animation: 'slideUp 300ms cubic-bezier(0.2,0,0,1)' }}
+        >
           <div className="flex justify-center pt-2 pb-1">
             <div className="w-10 h-1 rounded-full bg-gray-300" />
           </div>
@@ -164,7 +185,7 @@ export default function MapClient() {
         </div>
       )}
 
-      {/* Mobile filters drawer */}
+      {/* ── Mobile filters drawer ── */}
       {filtersOpen && (
         <div className="md:hidden fixed inset-0 z-[100] bg-black/40" onClick={() => setFiltersOpen(false)}>
           <aside
@@ -191,17 +212,6 @@ export default function MapClient() {
       <style>{`
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        .mayno-tooltip {
-          font-family: var(--font-jetbrains, monospace);
-          font-size: 12px;
-          padding: 4px 8px;
-          background: #0A0A0A;
-          color: #fff;
-          border: none;
-          border-radius: 4px;
-          white-space: nowrap;
-        }
-        .mayno-tooltip::before { display: none; }
       `}</style>
     </div>
   )

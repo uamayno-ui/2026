@@ -69,20 +69,37 @@ a:hover {
   text-decoration-thickness: 2px;
 }
 
-/* ---------- Leaflet overrides ---------- */
-.leaflet-container {
+/* ---------- Mapbox GL overrides ---------- */
+.mapboxgl-map {
   font-family: var(--font-inter), sans-serif;
-  z-index: 0;
 }
 
-.mayno-tooltip {
+/* Hide Mapbox wordmark (requires paid plan or own branding) */
+.mapboxgl-ctrl-logo {
+  display: none !important;
+}
+.mapboxgl-ctrl-attrib {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* Sync control button radius with design system */
+.mapboxgl-ctrl-group {
+  border-radius: 8px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12) !important;
+}
+.mapboxgl-ctrl-group button {
+  border-radius: 4px !important;
+}
+
+/* Tooltip popup reset */
+.mayno-popup .mapboxgl-popup-content {
   font-family: var(--font-jetbrains), monospace;
   font-size: 12px;
   padding: 4px 8px;
   background: #0A0A0A;
   color: #fff;
-  border: none;
   border-radius: 4px;
-  white-space: nowrap;
+  box-shadow: none;
 }
-.mayno-tooltip::before { display: none; }
+.mayno-popup .mapboxgl-popup-tip { border-top-color: #0A0A0A; }
