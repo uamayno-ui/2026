@@ -150,7 +150,8 @@ export default function CadastralMap({
             id="cadastral-wms"
             type="raster"
             tiles={[
-              'https://map.land.gov.ua/geowebcache/service/wms' +
+              // Через власний proxy-роут — обходить CORS обмеження map.land.gov.ua
+              '/api/wms' +
               '?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1' +
               '&LAYERS=kadastr&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=true' +
               '&HEIGHT=256&WIDTH=256&SRS=EPSG%3A3857&BBOX={bbox-epsg-3857}',

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { exchangeCode, getBankIdUser } from '@/lib/auth/bankid'
 import { prisma } from '@/lib/prisma'
 import { createSession, sessionCookieOptions } from '@/lib/auth/session'
+import { sendWelcome } from '@/lib/email/resend'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
@@ -54,10 +55,20 @@ export async function GET(req: NextRequest) {
       },
     })
 
+    // ── Welcome email для нових користувачів ──────────────────────────
+    const isNew = user.createdAt.getTime() === user.updatedAt.getTime()
+    if (isNew && user.email && user.fullName) {
+      // fire-and-forget — не блокуємо redirect
+      sendWelcome({ to: user.email, name: user.fullName }).catch(console.error)
+    }
+
     // ── Create session ─────────────────────────────────────────────────
     const token = await createSession(user.id)
 
-    const res = NextResponse.redirect(new URL('/app/overview', req.url))
+    // Redirect to ?next= or overview
+    const nextPath = searchParams.get('next') ?? '/app/overview'
+    const safeNext = nextPath.startsWith('/') ? nextPath : '/app/overview'
+    const res = NextResponse.redirect(new URL(safeNext, req.url))
     const opts = sessionCookieOptions(token)
     res.cookies.set(opts)
     return res

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Lock, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Lock, Loader2, AlertCircle } from 'lucide-react'
 
 type Provider = 'bankid' | 'diia' | 'file' | 'hw'
 
@@ -13,19 +13,28 @@ const ALT_OPTIONS: { id: Provider; title: string; sub: string }[] = [
   { id: 'hw',   title: 'Апаратний ключ', sub: 'Алмаз-1К, IIT, Crystal-1' },
 ]
 
+const ERROR_MESSAGES: Record<string, string> = {
+  auth_failed:    'Помилка авторизації. Спробуйте ще раз.',
+  invalid_state:  'Сесія прострочена. Спробуйте ще раз.',
+  missing_params: 'Некоректна відповідь від Bank ID.',
+  access_denied:  'Ви відхилили запит авторизації.',
+}
+
 export default function LoginForm() {
   const [busy, setBusy] = useState<Provider | null>(null)
-  const router = useRouter()
+  const router          = useRouter()
+  const searchParams    = useSearchParams()
+  const errorKey        = searchParams.get('error')
+  const next            = searchParams.get('next') ?? '/app/overview'
 
-  const start = (provider: Provider) => {
+  const handleBankId = () => {
     if (busy) return
-    setBusy(provider)
-    // TODO Sprint 3: реальний OAuth redirect
-    // window.location.href = `/api/auth/${provider}`
-    setTimeout(() => {
-      setBusy(null)
-      router.push('/app/overview')
-    }, 1500)
+    setBusy('bankid')
+    window.location.href = `/api/auth/bankid?next=${encodeURIComponent(next)}`
+  }
+
+  const handleAlt = () => {
+    alert('Цей спосіб входу буде доступний незабаром.')
   }
 
   return (
@@ -52,13 +61,22 @@ export default function LoginForm() {
       <main className="flex-1 flex items-start md:items-center justify-center px-4 md:px-6 pt-6 pb-12 md:py-12">
         <div className="w-full max-w-[720px]">
 
-          {/* Title */}
           <h1 className="text-[32px] leading-10 md:text-h1 font-bold tracking-[-0.02em] text-center mb-3 md:mb-4">
             Оберіть спосіб входу
           </h1>
           <p className="text-small md:text-body text-gray-500 text-center mb-7 md:mb-10">
             Авторизація через офіційні канали Дії та НБУ
           </p>
+
+          {/* Error banner */}
+          {errorKey && (
+            <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-lg px-5 py-4 mb-6">
+              <AlertCircle size={18} strokeWidth={1.5} className="text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-[14px] text-red-700">
+                {ERROR_MESSAGES[errorKey] ?? 'Сталася помилка. Спробуйте ще раз.'}
+              </p>
+            </div>
+          )}
 
           {/* Bank ID — primary */}
           <div className="bg-surface-blue rounded-lg p-6 md:p-8 mb-5 md:mb-6">
@@ -76,8 +94,6 @@ export default function LoginForm() {
                   Доступно усім клієнтам українських банків.
                 </p>
               </div>
-
-              {/* Bank ID logo block */}
               <div className="w-13 h-13 md:w-16 md:h-16 bg-green rounded-[10px] md:rounded-xl flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-[10px] md:text-[11px] font-bold tracking-[0.05em] leading-tight text-center">
                   BANK<br />ID
@@ -87,7 +103,7 @@ export default function LoginForm() {
 
             <button
               type="button"
-              onClick={() => start('bankid')}
+              onClick={handleBankId}
               disabled={!!busy}
               className="inline-flex items-center justify-center gap-2 h-14 px-8 w-full rounded-full bg-black text-white font-medium text-body-l hover:bg-black-hover active:bg-black-press active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
@@ -114,39 +130,27 @@ export default function LoginForm() {
               <button
                 key={opt.id}
                 type="button"
-                onClick={() => start(opt.id)}
+                onClick={handleAlt}
                 disabled={!!busy}
                 className={[
                   'flex items-center md:flex-col md:items-start justify-between',
                   'h-[72px] md:h-[132px]',
                   'px-5 md:p-5 gap-4 md:gap-0',
-                  'bg-white border border-[1.5px] border-black rounded',
-                  'cursor-pointer hover:bg-surface-soft active:scale-[0.99] transition-all',
+                  'bg-white border border-[1.5px] border-gray-200 rounded',
+                  'cursor-pointer hover:bg-surface-soft transition-all',
                   'disabled:opacity-40 disabled:cursor-not-allowed',
-                  busy === opt.id ? 'opacity-60' : '',
                 ].join(' ')}
               >
-                {/* Mobile: row layout */}
                 <div className="text-left flex-1 min-w-0 md:flex-none md:w-full">
                   <div className="text-[15px] font-bold text-black leading-snug">{opt.title}</div>
                   <div className="text-[13px] text-gray-500 font-normal mt-0.5 md:hidden">{opt.sub}</div>
                 </div>
-
-                {/* Desktop: bottom row with sub + arrow */}
                 <div className="hidden md:flex justify-between items-end w-full mt-auto">
-                  <span className="text-[13px] text-gray-500 text-left leading-tight">{opt.sub}</span>
-                  {busy === opt.id
-                    ? <Loader2 size={18} className="animate-spin text-gray-500 flex-shrink-0" />
-                    : <ArrowRight size={20} strokeWidth={1.5} className="flex-shrink-0" />
-                  }
+                  <span className="text-[13px] text-gray-400">{opt.sub}</span>
+                  <span className="text-[11px] text-gray-300 font-medium">Незабаром</span>
                 </div>
-
-                {/* Mobile arrow */}
                 <div className="md:hidden flex-shrink-0">
-                  {busy === opt.id
-                    ? <Loader2 size={18} className="animate-spin text-gray-500" />
-                    : <ArrowRight size={20} strokeWidth={1.5} />
-                  }
+                  <ArrowRight size={18} strokeWidth={1.5} className="text-gray-300" />
                 </div>
               </button>
             ))}
