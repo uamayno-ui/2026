@@ -1,7 +1,9 @@
 // POST /api/payment/liqpay/webhook — LiqPay payment callback
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { verifyWebhook, parseWebhook, mapLiqPayStatus } from '@/lib/payments/liqpay'
 import { prisma } from '@/lib/prisma'
+import { processOrder } from '@/lib/orders/processor'
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData()
@@ -36,7 +38,7 @@ export async function POST(req: NextRequest) {
       data: {
         status:      ourStatus,
         externalId:  String(payload.payment_id),
-        webhookData: payload as Record<string, unknown>,
+        webhookData: payload as unknown as Prisma.InputJsonValue,
       },
     }),
     // Оновити Order
@@ -48,7 +50,12 @@ export async function POST(req: NextRequest) {
     }),
   ])
 
-  // TODO Sprint 3: якщо PAID → запустити генерацію витягу (queue job)
+  // Якщо оплачено — запускаємо обробку витягу (fire-and-forget)
+  if (ourStatus === 'SUCCESS') {
+    processOrder(payload.order_id).catch((err) =>
+      console.error('[webhook] processOrder failed:', err)
+    )
+  }
 
   return NextResponse.json({ ok: true })
 }

@@ -1,6 +1,15 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy singleton — ініціалізується при першому виклику, а не при імпорті
+let _resend: Resend | null = null
+function getResend(): Resend {
+  if (!_resend) {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) throw new Error('RESEND_API_KEY is not set')
+    _resend = new Resend(apiKey)
+  }
+  return _resend
+}
 
 const FROM = process.env.EMAIL_FROM ?? 'Mayno <noreply@mayno.ua>'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://mayno.ua'
@@ -23,7 +32,7 @@ export async function sendOrderReady({
     day: 'numeric', month: 'long', year: 'numeric',
   })
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from:    FROM,
     to:      [to],
     subject: `✅ ${orderType} готовий — ${kadnum}`,
@@ -74,7 +83,7 @@ export async function sendMonitoringAlert({
   }
   const changeLabel = changeLabels[changeType] ?? 'Зафіксовано зміну в реєстрі'
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from:    FROM,
     to:      [to],
     subject: `⚠️ ${changeLabel} — ${title}`,
@@ -110,7 +119,7 @@ export async function sendMonitoringAlert({
 export async function sendWelcome({ to, name }: { to: string; name: string }) {
   const firstName = name.split(' ')[1] ?? name // ПІБ → ім'я
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from:    FROM,
     to:      [to],
     subject: `Ласкаво просимо до Mayno, ${firstName}!`,

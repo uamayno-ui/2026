@@ -1,35 +1,40 @@
 'use client'
 
+import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FileText, Clipboard, ShieldCheck, Bookmark, X, Check, Bell, ArrowRight, Link2, Route, Share2 } from 'lucide-react'
+import {
+  FileText, Clipboard, ShieldCheck, Bookmark, X, Check,
+  Bell, ArrowRight, Link2, Route, Share2, Loader2,
+} from 'lucide-react'
 import type { Parcel } from '@/types/map'
 
 const SERVICES = [
   {
-    id: 'dzk',
-    icon: <FileText size={24} strokeWidth={1.5} />,
-    title: 'Витяг з ДЗК',
-    desc: 'Межі, площа, цільове призначення',
-    price: '100 грн',
-    time: '60 сек',
+    id:       'DZK',
+    icon:     <FileText size={24} strokeWidth={1.5} />,
+    title:    'Витяг з ДЗК',
+    desc:     'Межі, площа, цільове призначення',
+    price:    '100 грн',
+    time:     '60 сек',
     featured: false,
   },
   {
-    id: 'drrp',
-    icon: <Clipboard size={24} strokeWidth={1.5} />,
-    title: 'Витяг з ДРРП',
-    desc: 'Власник, обтяження, історія операцій',
-    price: '300 грн',
-    time: '60 сек',
+    id:       'DRRP',
+    icon:     <Clipboard size={24} strokeWidth={1.5} />,
+    title:    'Витяг з ДРРП',
+    desc:     'Власник, обтяження, історія операцій',
+    price:    '300 грн',
+    time:     '60 сек',
     featured: false,
   },
   {
-    id: 'full',
-    icon: <ShieldCheck size={24} strokeWidth={1.5} />,
-    title: 'Повний звіт',
-    desc: 'ДЗК + ДРРП + AI-аналіз ризиків',
-    price: '400 грн',
-    time: '90 сек',
+    id:       'FULL',
+    icon:     <ShieldCheck size={24} strokeWidth={1.5} />,
+    title:    'Повний звіт',
+    desc:     'ДЗК + ДРРП + AI-аналіз ризиків',
+    price:    '400 грн',
+    time:     '90 сек',
     featured: true,
   },
 ]
@@ -43,12 +48,21 @@ function InfoRow({ label, value, mono = false }: { label: string; value: string;
   )
 }
 
-function ServiceCard({ svc, onClick }: { svc: typeof SERVICES[number]; onClick: (id: string) => void }) {
+function ServiceCard({
+  svc,
+  loading,
+  onClick,
+}: {
+  svc:     typeof SERVICES[number]
+  loading: boolean
+  onClick: (id: string) => void
+}) {
   return (
     <button
       type="button"
       onClick={() => onClick(svc.id)}
-      className="grid grid-cols-[24px_1fr_auto] gap-3.5 items-center text-left p-4 bg-white border border-gray-300 rounded cursor-pointer hover:bg-surface-soft hover:border-black transition-all duration-fast group"
+      disabled={loading}
+      className="grid grid-cols-[24px_1fr_auto] gap-3.5 items-center text-left p-4 bg-white border border-gray-300 rounded cursor-pointer hover:bg-surface-soft hover:border-black transition-all duration-fast group disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <span className="text-black">{svc.icon}</span>
       <div className="min-w-0">
@@ -72,13 +86,63 @@ function ServiceCard({ svc, onClick }: { svc: typeof SERVICES[number]; onClick: 
 }
 
 interface ParcelPanelProps {
-  parcel: Parcel
-  onClose: () => void
-  onOrder: (serviceId: string) => void
-  mobile?: boolean
+  parcel:   Parcel
+  onClose:  () => void
+  onOrder:  (serviceId: string) => void
+  mobile?:  boolean
 }
 
 export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }: ParcelPanelProps) {
+  const router = useRouter()
+  const [ordering, setOrdering] = useState<string | null>(null)
+  const [copied, setCopied]     = useState(false)
+
+  // ── Place order via API ────────────────────────────────────────────
+  const handleOrder = useCallback(async (serviceId: string) => {
+    setOrdering(serviceId)
+    try {
+      const res = await fetch('/api/order', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ type: serviceId, kadnum: parcel.kadnum }),
+      })
+
+      if (res.status === 401) {
+        // Не авторизований → redirect на login з поверненням на /map
+        router.push(`/login?next=/map`)
+        return
+      }
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        alert(err.error ?? 'Помилка при створенні замовлення')
+        return
+      }
+
+      const data = await res.json()
+
+      // Redirect на LiqPay checkout
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl
+      }
+    } catch {
+      alert('Мережева помилка. Спробуйте ще раз.')
+    } finally {
+      setOrdering(null)
+    }
+  }, [parcel.kadnum, router])
+
+  // ── Copy link ──────────────────────────────────────────────────────
+  const handleCopyLink = useCallback(() => {
+    const url = `${window.location.origin}/parcel/${parcel.kadnum}`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }, [parcel.kadnum])
+
+  const isLoading = !!ordering
+
   return (
     <aside className={[
       'flex flex-col bg-white overflow-hidden',
@@ -93,9 +157,14 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
           {parcel.kadnum}
         </span>
         <div className="flex gap-1 flex-shrink-0">
-          <button type="button" aria-label="Закласти" className="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100 transition-colors">
-            <Bookmark size={20} strokeWidth={1.5} />
-          </button>
+          <Link
+            href={`/parcel/${parcel.kadnum}`}
+            className="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100 transition-colors no-underline text-black"
+            aria-label="Відкрити сторінку ділянки"
+            title="Відкрити сторінку ділянки"
+          >
+            <ArrowRight size={18} strokeWidth={1.5} />
+          </Link>
           <button type="button" aria-label="Закрити" onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100 transition-colors">
             <X size={20} strokeWidth={1.5} />
           </button>
@@ -111,10 +180,10 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
           <p className="text-[13px] text-gray-500 mb-4">{parcel.region}</p>
 
           <div className="bg-surface-soft rounded px-4 py-0.5 divide-y divide-gray-100">
-            <InfoRow label="Площа"     value={parcel.area}      mono />
-            <InfoRow label="Цільове"   value={parcel.purpose} />
-            <InfoRow label="Власність" value={parcel.ownership} />
-            <InfoRow label="Координати" value={parcel.coords}   mono />
+            <InfoRow label="Площа"      value={parcel.area}      mono />
+            <InfoRow label="Цільове"    value={parcel.purpose} />
+            <InfoRow label="Власність"  value={parcel.ownership} />
+            <InfoRow label="Координати" value={parcel.coords}    mono />
           </div>
 
           <div className="flex items-center gap-1.5 mt-3 text-[12px] uppercase tracking-[0.03em] text-gray-500 font-medium">
@@ -125,10 +194,23 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
 
         {/* Services */}
         <section className="px-4 md:px-6 py-6 border-b border-gray-100">
-          <h3 className="text-h3 font-semibold mb-4">Замовити документи</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-h3 font-semibold">Замовити документи</h3>
+            {ordering && (
+              <span className="inline-flex items-center gap-1.5 text-[13px] text-gray-500">
+                <Loader2 size={13} className="animate-spin" />
+                Оформлення…
+              </span>
+            )}
+          </div>
           <div className="flex flex-col gap-2">
             {SERVICES.map((svc) => (
-              <ServiceCard key={svc.id} svc={svc} onClick={onOrder} />
+              <ServiceCard
+                key={svc.id}
+                svc={svc}
+                loading={isLoading}
+                onClick={handleOrder}
+              />
             ))}
           </div>
           <Link
@@ -144,12 +226,12 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
         <section className="px-4 md:px-6 py-5 border-b border-gray-100">
           <div className="grid grid-cols-2 gap-1.5">
             {[
-              { icon: <Link2 size={18} strokeWidth={1.5} />, label: 'Копіювати посилання' },
-              { icon: <Bookmark size={18} strokeWidth={1.5} />, label: 'До закладок' },
-              { icon: <Route size={18} strokeWidth={1.5} />, label: 'Маршрут' },
-              { icon: <Share2 size={18} strokeWidth={1.5} />, label: 'Поділитись' },
-            ].map(({ icon, label }) => (
-              <button key={label} type="button" className="flex items-center gap-2 h-10 px-3 text-[14px] text-black rounded hover:bg-surface-soft transition-colors">
+              { icon: <Link2 size={18} strokeWidth={1.5} />,    label: copied ? 'Скопійовано!' : 'Копіювати посилання', action: handleCopyLink },
+              { icon: <Bookmark size={18} strokeWidth={1.5} />, label: 'До закладок', action: () => onOrder('bookmark') },
+              { icon: <Route size={18} strokeWidth={1.5} />,    label: 'Маршрут',     action: () => {} },
+              { icon: <Share2 size={18} strokeWidth={1.5} />,   label: 'Поділитись',  action: handleCopyLink },
+            ].map(({ icon, label, action }) => (
+              <button key={label} type="button" onClick={action} className="flex items-center gap-2 h-10 px-3 text-[14px] text-black rounded hover:bg-surface-soft transition-colors">
                 <span className="text-gray-500">{icon}</span>
                 {label}
               </button>
@@ -172,8 +254,9 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
             </div>
             <button
               type="button"
-              onClick={() => onOrder('monitor')}
-              className="inline-flex items-center justify-center h-10 px-4 rounded-full bg-green text-white text-small font-medium hover:bg-green-hover transition-colors"
+              onClick={() => handleOrder('monitor')}
+              disabled={isLoading}
+              className="inline-flex items-center justify-center h-10 px-4 rounded-full bg-green text-white text-small font-medium hover:bg-green-hover transition-colors disabled:opacity-50"
             >
               Підписатися на моніторинг
             </button>

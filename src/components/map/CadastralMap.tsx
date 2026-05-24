@@ -4,7 +4,7 @@ import { useRef, useCallback } from 'react'
 import Map, {
   Source, Layer, NavigationControl, GeolocateControl,
 } from 'react-map-gl/mapbox'
-import type { MapRef, MapLayerMouseEvent, LayerProps } from 'react-map-gl/mapbox'
+import type { MapRef, MapMouseEvent, LayerProps } from 'react-map-gl/mapbox'
 import { ExternalLink } from 'lucide-react'
 import type { Parcel, MapLayers } from '@/types/map'
 import { PARCELS, DECO_PARCELS, KYIV_CENTER, parcelsToGeoJSON, decoToGeoJSON } from '@/lib/mapData'
@@ -106,7 +106,7 @@ export default function CadastralMap({
   const ref = (mapRef ?? internalRef) as React.RefObject<MapRef>
 
   const handleClick = useCallback(
-    (e: MapLayerMouseEvent) => {
+    (e: MapMouseEvent) => {
       const id = e.features?.[0]?.properties?.id as string | undefined
       const found = PARCELS.find((p) => p.id === id)
       if (found) onSelect(found)
