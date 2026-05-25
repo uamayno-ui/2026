@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getDrrpByKadnum } from '@/lib/registries/opendatabot'
 import { sendMonitoringAlert } from '@/lib/email/resend'
+import { sendPushToUser } from '@/lib/push/webpush'
 
 // Vercel Cron передає Authorization: Bearer <CRON_SECRET>
 function isAuthorized(req: NextRequest): boolean {
@@ -51,7 +52,7 @@ export async function GET(req: NextRequest) {
   // Беремо активні об'єкти порціями по 50
   const objects = await prisma.monitoringObject.findMany({
     where:   { active: true },
-    include: { user: { select: { email: true, fullName: true } } },
+    include: { user: { select: { id: true, email: true, fullName: true } } },
     take:    50,
     orderBy: { lastChecked: 'asc' }, // спочатку ті, що давно перевірялись
   })
@@ -91,6 +92,7 @@ export async function GET(req: NextRequest) {
           })),
         })
 
+        // Email-сповіщення
         if (obj.user.email) {
           for (const changeType of changes) {
             await sendMonitoringAlert({
@@ -100,13 +102,23 @@ export async function GET(req: NextRequest) {
               label:      obj.label ?? undefined,
             }).catch(console.error)
           }
-
-          // Позначити alerts як notified
-          await prisma.monitoringAlert.updateMany({
-            where:  { objectId: obj.id, notified: false },
-            data:   { notified: true },
-          })
         }
+
+        // Web Push-сповіщення (якщо є підписки)
+        const changeLabel = changes.includes('owner_changed')
+          ? 'Змінився власник'
+          : 'Зміна в реєстрі'
+        await sendPushToUser(obj.user.id, {
+          title: `⚠️ ${changeLabel}`,
+          body:  obj.label ?? obj.kadnum,
+          url:   `/parcel/${obj.kadnum}`,
+        }).catch(console.error)
+
+        // Позначити alerts як notified
+        await prisma.monitoringAlert.updateMany({
+          where:  { objectId: obj.id, notified: false },
+          data:   { notified: true },
+        })
       }
 
       checked++

@@ -1,11 +1,14 @@
 // Обробка замовлення після успішної оплати:
 // ДЗК → e.land.gov.ua API
 // ДРРП / FULL → Opendatabot
+// FULL → AI-аналіз ризиків (Claude API)
 // Збереження PDF URL, встановлення 30-денного expiry
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { orderDzkExcerpt, getDzkExcerptStatus, EXCERPT_TYPE } from '@/lib/registries/dzk'
-import { orderDrrpExcerpt } from '@/lib/registries/opendatabot'
+import { orderDrrpExcerpt, getDrrpByKadnum } from '@/lib/registries/opendatabot'
 import { sendOrderReady } from '@/lib/email/resend'
+import { analyzeParcelRisk } from '@/lib/ai/risk-analysis'
 import type { OrderType } from '@prisma/client'
 
 const PDF_TTL_DAYS = 30
@@ -68,9 +71,9 @@ export async function processOrder(orderId: string): Promise<void> {
       pdfUrl = result?.pdfUrl ?? null
     }
 
-    // ── FULL (DZK + DRRP) — запускаємо обидва паралельно ────────────
+    // ── FULL (DZK + DRRP + AI-аналіз) — запускаємо паралельно ─────────
     else if (order.type === 'FULL') {
-      const [dzk, drrp] = await Promise.allSettled([
+      const [dzk, drrp, drrpData] = await Promise.allSettled([
         order.user.fullName && order.user.rnokpp
           ? orderDzkExcerpt({
               kadnum:      order.kadnum,
@@ -84,6 +87,7 @@ export async function processOrder(orderId: string): Promise<void> {
             })
           : Promise.resolve(null),
         orderDrrpExcerpt(order.kadnum),
+        getDrrpByKadnum(order.kadnum),
       ])
 
       // Для FULL зберігаємо URL ДРРП (основний документ з правами)
@@ -91,6 +95,20 @@ export async function processOrder(orderId: string): Promise<void> {
         pdfUrl = drrp.value.pdfUrl
       }
       void dzk // DZK зберігаємо окремим механізмом (Sprint 4: ZIP)
+
+      // AI-аналіз ризиків (fire-and-forget зберігання в rawJson)
+      const drrpRecord = drrpData.status === 'fulfilled' ? drrpData.value : null
+      analyzeParcelRisk({
+        kadnum: order.kadnum,
+        drrp:   drrpRecord ?? undefined,
+      })
+        .then((analysis) =>
+          prisma.order.update({
+            where: { id: orderId },
+            data:  { rawJson: { aiAnalysis: analysis } as unknown as Prisma.InputJsonValue },
+          })
+        )
+        .catch((err) => console.error('[processor] AI analysis failed:', err))
     }
 
     // ── Зберегти результат ────────────────────────────────────────────

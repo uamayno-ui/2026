@@ -72,10 +72,11 @@ model User {
   planExpires DateTime?
 
   // Зв'язки
-  sessions    Session[]
-  orders      Order[]
-  monitoring  MonitoringObject[]
-  payments    Payment[]
+  sessions          Session[]
+  orders            Order[]
+  monitoring        MonitoringObject[]
+  payments          Payment[]
+  pushSubscriptions PushSubscription[]
 
   @@index([email])
   @@map("users")
@@ -186,6 +187,23 @@ model MonitoringObject {
   @@unique([userId, kadnum])
   @@index([userId])
   @@map("monitoring_objects")
+}
+
+// ── Push subscriptions (Web Push / VAPID) ─────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  endpoint  String   @unique  // browser push endpoint URL
+  p256dh    String            // public key
+  auth      String            // auth secret
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
 
 model MonitoringAlert {
