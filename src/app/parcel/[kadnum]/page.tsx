@@ -39,9 +39,25 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { kadnum } = await params
   const num = formatKadnum(kadnum)
+  const parcel = getMockParcel(num)
+  const desc = `Земельна ділянка ${num} — ${parcel.area}, ${parcel.category}, ${parcel.settlement}. Замовте витяг з ДЗК, ДРРП та AI-аналіз ризиків за 60 секунд.`
   return {
-    title: `Ділянка ${num}`,
-    description: `Перевірте земельну ділянку ${num}: площа, цільове призначення, власник, обтяження. Витяг з ДЗК і ДРРП за 60 секунд.`,
+    title: `Ділянка ${num} — ${parcel.settlement}`,
+    description: desc,
+    alternates: {
+      canonical: `/parcel/${num}`,
+    },
+    openGraph: {
+      title: `Земельна ділянка ${num}`,
+      description: desc,
+      url: `/parcel/${num}`,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Земельна ділянка ${num}`,
+      description: desc,
+    },
   }
 }
 
@@ -97,8 +113,33 @@ export default async function ParcelPage(
   const num = formatKadnum(kadnum)
   const parcel = getMockParcel(num)
 
+  // ── Schema.org JSON-LD ─────────────────────────────────────────────
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LandParcel',
+    name: `Земельна ділянка ${num}`,
+    description: `${parcel.category}. ${parcel.purpose}.`,
+    identifier: num,
+    areaServed: {
+      '@type': 'AdministrativeArea',
+      name: `${parcel.settlement}, ${parcel.district}, ${parcel.region}`,
+      addressCountry: 'UA',
+    },
+    additionalProperty: [
+      { '@type': 'PropertyValue', name: 'Площа', value: parcel.area },
+      { '@type': 'PropertyValue', name: 'Цільове призначення', value: parcel.purpose },
+      { '@type': 'PropertyValue', name: 'Форма власності', value: parcel.ownership },
+      { '@type': 'PropertyValue', name: 'Кадастровий номер', value: num },
+    ],
+    url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://mayno.ua'}/parcel/${num}`,
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <TopBar />
       <main>
 
