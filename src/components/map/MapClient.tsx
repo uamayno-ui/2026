@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Plus, Minus, Locate, Globe, Filter, X } from 'lucide-react'
 import type { MapRef } from 'react-map-gl/mapbox'
@@ -88,12 +88,11 @@ export default function MapClient() {
     onFlyTo: flyTo,
   })
 
-  // Sync initial query from URL ?q=
-  const [querySynced, setQuerySynced] = useState(false)
-  if (!querySynced && initialQuery) {
-    search.setQuery(initialQuery)
-    setQuerySynced(true)
-  }
+  // Sync initial query from URL ?q= (once, after mount)
+  useEffect(() => {
+    if (initialQuery) search.setQuery(initialQuery)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const toggleLayer = useCallback((key: LayerKey) => {
     setLayers((prev) => ({ ...prev, [key]: !prev[key] }))

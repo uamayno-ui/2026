@@ -1,18 +1,24 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Mic } from 'lucide-react'
+import { Search, MapPin, Hash, X, Loader } from 'lucide-react'
 
-const SUGGESTIONS = [
-  { label: 'Київ, вул. Хрещатик, 1', sub: 'Адреса · Центральний р-н' },
-  { label: 'Львів, Площа Ринок, 14', sub: 'Адреса · Галицький р-н' },
-  { label: '6310136900:12:001:0025', sub: 'Кадастровий номер · Харків', mono: true },
-  { label: 'Запоріжжя, Незалежної України, 40', sub: 'Адреса' },
-]
+// Регекс для кадастрового номера: XXXXXXXXXX:XX:XXX:XXXX
+const KADNUM_RE = /^\d{10}:\d{2}:\d{3}:\d{4}$/
+
+interface Suggestion {
+  id:           number | string
+  label:        string   // повна назва (передається у URL)
+  displayLabel: string   // скорочена для відображення у dropdown
+  sub:          string
+  lat:          number
+  lng:          number
+  isKadnum?:    boolean
+}
 
 interface SearchInputProps {
-  size?: 'md' | 'hero'
+  size?:        'md' | 'hero'
   placeholder?: string
 }
 
@@ -20,23 +26,124 @@ export default function SearchInput({
   size = 'hero',
   placeholder = 'Введіть адресу або кадастровий номер',
 }: SearchInputProps) {
-  const [query, setQuery] = useState('')
-  const [open, setOpen] = useState(false)
-  const router = useRouter()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [query,       setQuery]       = useState('')
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [open,        setOpen]        = useState(false)
+  const [loading,     setLoading]     = useState(false)
+  const [activeIdx,   setActiveIdx]   = useState(-1)
 
-  const filtered = SUGGESTIONS.filter(
-    (s) => !query || s.label.toLowerCase().includes(query.toLowerCase())
-  )
+  const router     = useRouter()
+  const inputRef   = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef   = useRef<AbortController | null>(null)
 
-  const handleSearch = (q: string) => {
-    const val = q || query || SUGGESTIONS[0].label
+  // ── Fetch suggestions ────────────────────────────────────────────────
+  const fetchSuggestions = useCallback(async (q: string) => {
+    if (abortRef.current) abortRef.current.abort()
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, {
+        signal: ctrl.signal,
+      })
+      if (!res.ok) throw new Error()
+      const results = await res.json() as {
+        id: number; label: string; lat: number; lng: number
+      }[]
+      setSuggestions(results.map((r) => {
+        // display_name: "вулиця Хрещатик, Печерський р-н, Київ, ..."
+        const parts = r.label.split(',').map((p: string) => p.trim())
+        const displayLabel = parts[0] ?? r.label
+        const sub = parts.slice(1, 3).filter(Boolean).join(', ') || 'Україна'
+        return {
+          id: r.id,
+          label: r.label,
+          displayLabel,
+          sub,
+          lat: r.lat,
+          lng: r.lng,
+        }
+      }))
+      setOpen(true)
+    } catch (e) {
+      if ((e as Error).name !== 'AbortError') setSuggestions([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // ── React to query changes ──────────────────────────────────────────
+  useEffect(() => {
+    const q = query.trim()
+    if (!q) { setSuggestions([]); setOpen(false); return }
+
+    setActiveIdx(-1)
+
+    // Кадастровий номер — одразу переходимо, не потрібен пошук
+    if (KADNUM_RE.test(q)) {
+      setSuggestions([{
+        id: q, label: q, displayLabel: q, sub: 'Кадастровий номер', lat: 0, lng: 0, isKadnum: true,
+      }])
+      setOpen(true)
+      return
+    }
+
+    if (q.length < 3) { setSuggestions([]); setOpen(false); return }
+
+    // Debounce 350ms для адрес
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => fetchSuggestions(q), 350)
+  }, [query, fetchSuggestions])
+
+  // ── Navigate to map ─────────────────────────────────────────────────
+  const navigate = useCallback((q: string) => {
+    const val = q.trim() || query.trim()
+    if (!val) return
     setOpen(false)
     router.push(`/map?q=${encodeURIComponent(val)}`)
+  }, [query, router])
+
+  // ── Keyboard navigation ─────────────────────────────────────────────
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!open) { if (e.key === 'Enter') navigate(query); return }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIdx((i) => Math.min(i + 1, suggestions.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIdx((i) => Math.max(i - 1, -1))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (activeIdx >= 0 && suggestions[activeIdx]) {
+        const s = suggestions[activeIdx]
+        setQuery(s.displayLabel)
+        navigate(s.label)
+      } else {
+        navigate(query)
+      }
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+      setActiveIdx(-1)
+    }
   }
 
-  const inputHeight = size === 'hero' ? 'h-16' : 'h-12'
-  const inputPx = size === 'hero' ? 'pl-5 pr-2' : 'pl-4 pr-2'
+  const handleSelect = (s: Suggestion) => {
+    setQuery(s.displayLabel)  // показуємо скорочену версію в input
+    navigate(s.label)         // передаємо повну назву в URL
+  }
+
+  const handleClear = () => {
+    setQuery('')
+    setSuggestions([])
+    setOpen(false)
+    inputRef.current?.focus()
+  }
+
+  // ── Styles ───────────────────────────────────────────────────────────
+  const inputHeight   = size === 'hero' ? 'h-16' : 'h-12'
+  const inputPx       = size === 'hero' ? 'pl-5 pr-2' : 'pl-4 pr-2'
   const inputFontSize = size === 'hero' ? 'text-body-l' : 'text-body'
 
   return (
@@ -49,21 +156,26 @@ export default function SearchInput({
           inputPx,
           'bg-white',
           'border transition-all duration-fast',
-          open
+          open && suggestions.length > 0
             ? 'border-black border-[1.5px] rounded-t rounded-b-none shadow-[0_0_0_4px_rgba(212,212,216,0.4)]'
             : 'border-gray-300 rounded',
         ].join(' ')}
       >
-        <Search size={22} strokeWidth={1.5} className="text-gray-500 shrink-0" />
+        {loading
+          ? <Loader size={22} strokeWidth={1.5} className="text-gray-400 shrink-0 animate-spin" />
+          : <Search size={22} strokeWidth={1.5} className="text-gray-500 shrink-0" />
+        }
 
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(query) }}
+          onFocus={() => { if (suggestions.length > 0) setOpen(true) }}
+          onBlur={() => setTimeout(() => { setOpen(false); setActiveIdx(-1) }, 150)}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder}
+          autoComplete="off"
+          spellCheck={false}
           className={[
             'flex-1 min-w-0 h-full',
             'bg-transparent border-0 outline-none',
@@ -71,20 +183,25 @@ export default function SearchInput({
             inputFontSize,
           ].join(' ')}
           aria-label="Пошук нерухомості"
+          aria-autocomplete="list"
+          aria-expanded={open}
         />
 
-        <button
-          type="button"
-          onClick={() => inputRef.current?.focus()}
-          className="hidden sm:flex items-center justify-center w-10 h-10 rounded hover:bg-gray-100 transition-colors shrink-0"
-          aria-label="Голосовий пошук"
-        >
-          <Mic size={20} strokeWidth={1.5} className="text-gray-500" />
-        </button>
+        {/* Clear button */}
+        {query && (
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); handleClear() }}
+            className="flex items-center justify-center w-8 h-8 rounded hover:bg-gray-100 transition-colors shrink-0"
+            aria-label="Очистити"
+          >
+            <X size={16} strokeWidth={1.5} className="text-gray-400" />
+          </button>
+        )}
 
         <button
           type="button"
-          onClick={() => handleSearch(query)}
+          onClick={() => navigate(query)}
           className="shrink-0 inline-flex items-center justify-center h-10 px-5 rounded-full bg-black text-white text-small font-medium hover:bg-black-hover active:bg-black-press active:scale-[0.98] transition-all duration-fast whitespace-nowrap"
         >
           Знайти
@@ -92,25 +209,39 @@ export default function SearchInput({
       </div>
 
       {/* Autocomplete dropdown */}
-      {open && filtered.length > 0 && (
-        <div className="absolute left-0 right-0 top-full bg-white border-[1.5px] border-t-0 border-black rounded-b shadow-lg py-2 z-10">
-          {filtered.map((s, i) => (
-            <button
-              key={i}
-              type="button"
-              onMouseDown={(e) => { e.preventDefault(); setQuery(s.label); handleSearch(s.label) }}
-              className="flex items-center gap-4 w-full px-5 py-3 text-left hover:bg-surface-soft transition-colors"
-            >
-              <MapPin size={18} strokeWidth={1.5} className="text-gray-500 shrink-0" />
-              <div>
-                <div className={['text-[15px] font-medium text-black', s.mono ? 'font-mono' : ''].join(' ')}>
-                  {s.label}
+      {open && suggestions.length > 0 && (
+        <ul
+          role="listbox"
+          className="absolute left-0 right-0 top-full bg-white border-[1.5px] border-t-0 border-black rounded-b shadow-lg py-2 z-10"
+        >
+          {suggestions.map((s, i) => (
+            <li key={s.id} role="option" aria-selected={i === activeIdx}>
+              <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); handleSelect(s) }}
+                onMouseEnter={() => setActiveIdx(i)}
+                className={[
+                  'flex items-center gap-4 w-full px-5 py-3 text-left transition-colors',
+                  i === activeIdx ? 'bg-surface-soft' : 'hover:bg-surface-soft',
+                ].join(' ')}
+              >
+                {s.isKadnum
+                  ? <Hash    size={18} strokeWidth={1.5} className="text-green shrink-0" />
+                  : <MapPin  size={18} strokeWidth={1.5} className="text-gray-500 shrink-0" />
+                }
+                <div>
+                  <div className={[
+                    'text-[15px] font-medium text-black leading-tight',
+                    s.isKadnum ? 'font-mono' : '',
+                  ].join(' ')}>
+                    {s.displayLabel}
+                  </div>
+                  <div className="text-[13px] text-gray-500 mt-0.5">{s.sub}</div>
                 </div>
-                <div className="text-[13px] text-gray-500 mt-0.5">{s.sub}</div>
-              </div>
-            </button>
+              </button>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   )
