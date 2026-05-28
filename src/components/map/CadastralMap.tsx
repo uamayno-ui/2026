@@ -2,7 +2,7 @@
 
 import { useRef, useCallback } from 'react'
 import Map, {
-  Source, Layer, NavigationControl, GeolocateControl,
+  Source, Layer,
 } from 'react-map-gl/mapbox'
 import type { MapRef, MapMouseEvent, LayerProps } from 'react-map-gl/mapbox'
 import { ExternalLink } from 'lucide-react'
@@ -186,8 +186,6 @@ export default function CadastralMap({
         <Layer {...LINE_SEL} filter={selFilter} />
       </Source>
 
-      <NavigationControl position="top-right" showCompass={false} />
-      <GeolocateControl position="top-right" />
     </Map>
   )
 }
