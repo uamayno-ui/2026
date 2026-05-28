@@ -47,6 +47,30 @@ export function decoToGeoJSON(polys: [number, number][][]): GeoJSONFC {
 }
 
 export const KYIV_CENTER: [number, number] = [50.4498, 30.5235]
+
+// ── DzkParcelInfo → Parcel ────────────────────────────────────────────
+import type { DzkParcelInfo } from '@/lib/registries/dzk'
+
+export function dzkToParcel(info: DzkParcelInfo): import('@/types/map').Parcel {
+  const center = info.center ?? [50.4498, 30.5235]
+  // Якщо полігон є — використовуємо; інакше генеруємо заглушку навколо центру
+  const polygon = info.polygon && info.polygon.length >= 3
+    ? info.polygon
+    : makeDecoParcel(center[0], center[1], 0.0001, 0.0002)
+
+  return {
+    id:        info.kadnum,
+    kadnum:    info.kadnum,
+    address:   info.settlement || info.district || info.region || 'Україна',
+    region:    [info.region, info.district].filter(Boolean).join(', '),
+    area:      info.area ? `${info.area.toFixed(4)} га` : '—',
+    purpose:   info.purposeName || info.purposeCode || '—',
+    ownership: info.ownership || '—',
+    coords:    center ? `${center[0].toFixed(4)}° ${center[1].toFixed(4)}°` : '—',
+    center,
+    polygon,
+  }
+}
 export const UA_BOUNDS: [[number, number], [number, number]] = [[44.3, 22.1], [52.4, 40.2]]
 
 export const PARCELS: Parcel[] = [

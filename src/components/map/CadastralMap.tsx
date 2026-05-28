@@ -12,10 +12,11 @@ import { PARCELS, DECO_PARCELS, KYIV_CENTER, parcelsToGeoJSON, decoToGeoJSON } f
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
 export interface CadastralMapProps {
-  selectedId: string | null
-  onSelect: (p: Parcel) => void
-  layers: MapLayers
-  mapRef?: React.RefObject<MapRef | null>
+  selectedId:   string | null
+  onSelect:     (p: Parcel) => void
+  onMapClick?:  (lat: number, lng: number) => void  // клік поза відомими полігонами
+  layers:       MapLayers
+  mapRef?:      React.RefObject<MapRef | null>
 }
 
 // ── Layer definitions ─────────────────────────────────────────────────
@@ -99,6 +100,7 @@ function NoToken() {
 export default function CadastralMap({
   selectedId,
   onSelect,
+  onMapClick,
   layers,
   mapRef,
 }: CadastralMapProps) {
@@ -107,11 +109,19 @@ export default function CadastralMap({
 
   const handleClick = useCallback(
     (e: MapMouseEvent) => {
+      // 1. Перевіряємо чи клік по відомому mock-полігону
       const id = e.features?.[0]?.properties?.id as string | undefined
       const found = PARCELS.find((p) => p.id === id)
-      if (found) onSelect(found)
+      if (found) {
+        onSelect(found)
+        return
+      }
+      // 2. Клік по порожньому місцю або WMS-шару — передаємо координати нагору
+      if (onMapClick) {
+        onMapClick(e.lngLat.lat, e.lngLat.lng)
+      }
     },
-    [onSelect],
+    [onSelect, onMapClick],
   )
 
   if (!TOKEN) return <NoToken />

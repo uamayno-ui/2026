@@ -1,18 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Globe, Satellite, ChevronDown, Ruler, Route, Download } from 'lucide-react'
+import { Globe, Satellite, ChevronDown, Ruler, Route, Download } from 'lucide-react'
 import type { MapLayers, LayerKey } from '@/types/map'
+import type { UseMapSearchReturn } from '@/hooks/useMapSearch'
+import SearchBox from '@/components/map/SearchBox'
+
+// ── Re-export hook type so MapClient can pass it ───────────────────────
+export type { UseMapSearchReturn as MapSearchHook }
 
 interface LeftPanelProps {
-  layers: MapLayers
-  onToggleLayer: (key: LayerKey) => void
-  searchValue: string
-  onSearchChange: (v: string) => void
+  layers:         MapLayers
+  onToggleLayer:  (key: LayerKey) => void
+  search:         UseMapSearchReturn
 }
 
 const LAYER_CONFIG: { key: LayerKey; icon: React.ReactNode; label: string }[] = [
-  { key: 'cadastr',   icon: <Globe size={18} strokeWidth={1.5} />,     label: 'Кадастр'  },
+  { key: 'cadastr',   icon: <Globe    size={18} strokeWidth={1.5} />, label: 'Кадастр'  },
   { key: 'satellite', icon: <Satellite size={18} strokeWidth={1.5} />, label: 'Супутник' },
 ]
 
@@ -73,20 +77,20 @@ function ToggleRow({ icon, label, active, onToggle }: {
   )
 }
 
-export default function LeftPanel({ layers, onToggleLayer, searchValue, onSearchChange }: LeftPanelProps) {
+export default function LeftPanel({ layers, onToggleLayer, search }: LeftPanelProps) {
   return (
     <>
-      {/* Search */}
-      <div className="px-5 py-4 border-b border-gray-100">
-        <div className="relative">
-          <Search size={18} strokeWidth={1.5} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-          <input
-            value={searchValue}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Адреса або кадастровий номер"
-            className="w-full h-11 pl-10 pr-4 text-small bg-white border border-gray-300 rounded hover:border-gray-500 focus:outline-none focus:border-black focus:border-[1.5px] transition-colors"
-          />
-        </div>
+      {/* Search box з dropdown */}
+      <div className="px-4 py-4 border-b border-gray-100">
+        <SearchBox
+          value={search.query}
+          onChange={search.setQuery}
+          suggestions={search.suggestions}
+          searching={search.searching}
+          error={search.error}
+          onSelect={search.selectSuggestion}
+          onClear={search.clearResults}
+        />
       </div>
 
       {/* Scrollable content */}
@@ -122,8 +126,8 @@ export default function LeftPanel({ layers, onToggleLayer, searchValue, onSearch
         <Section title="Інструменти">
           <div className="px-2 pb-3">
             {[
-              { icon: <Ruler size={18} strokeWidth={1.5} />, label: 'Вимірювання площі' },
-              { icon: <Route size={18} strokeWidth={1.5} />, label: 'Вимірювання відстані' },
+              { icon: <Ruler   size={18} strokeWidth={1.5} />, label: 'Вимірювання площі' },
+              { icon: <Route   size={18} strokeWidth={1.5} />, label: 'Вимірювання відстані' },
               { icon: <Download size={18} strokeWidth={1.5} />, label: 'Експорт обраного' },
             ].map(({ icon, label }) => (
               <button key={label} type="button" className="flex items-center gap-2.5 w-full h-10 px-3 text-[14px] text-black rounded hover:bg-surface-soft transition-colors">

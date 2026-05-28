@@ -6,7 +6,8 @@ import { useSearchParams } from 'next/navigation'
 import { Plus, Minus, Locate, Globe, Filter, X } from 'lucide-react'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { Parcel, MapLayers, LayerKey } from '@/types/map'
-import { PARCELS, KYIV_CENTER } from '@/lib/mapData'
+import { KYIV_CENTER, dzkToParcel } from '@/lib/mapData'
+import { useMapSearch } from '@/hooks/useMapSearch'
 import TopBar from '@/components/layout/TopBar'
 import LeftPanel from '@/components/map/LeftPanel'
 import ParcelPanel from '@/components/map/ParcelPanel'
@@ -38,12 +39,12 @@ function MapControls({
   const zoomOut = () => mapRef.current?.zoomOut()
   const flyHome = () =>
     mapRef.current?.flyTo({
-      center: [KYIV_CENTER[1], KYIV_CENTER[0]], // [lng, lat]
+      center: [KYIV_CENTER[1], KYIV_CENTER[0]],
       zoom: 17,
     })
   const flyUA = () =>
     mapRef.current?.fitBounds(
-      [[22.1, 44.3], [40.2, 52.4]], // [[minLng, minLat], [maxLng, maxLat]]
+      [[22.1, 44.3], [40.2, 52.4]],
       { padding: 24 },
     )
 
@@ -68,25 +69,65 @@ export default function MapClient() {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('q') ?? ''
 
-  const [selected, setSelected]       = useState<Parcel | null>(PARCELS[0])
-  const [searchValue, setSearchValue] = useState(initialQuery)
+  const [selected, setSelected]       = useState<Parcel | null>(null)
   const [layers, setLayers]           = useState<MapLayers>(DEFAULT_LAYERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  // Ідентифікація кліком — стан завантаження
+  const [identifying, setIdentifying] = useState(false)
 
   const mapRef = useRef<MapRef>(null)
+
+  // ── Fly-to helper ─────────────────────────────────────────────────
+  const flyTo = useCallback((lat: number, lng: number, zoom = 17) => {
+    mapRef.current?.flyTo({ center: [lng, lat], zoom, duration: 1200 })
+  }, [])
+
+  // ── Search hook ───────────────────────────────────────────────────
+  const search = useMapSearch({
+    onParcelFound: setSelected,
+    onFlyTo: flyTo,
+  })
+
+  // Sync initial query from URL ?q=
+  const [querySynced, setQuerySynced] = useState(false)
+  if (!querySynced && initialQuery) {
+    search.setQuery(initialQuery)
+    setQuerySynced(true)
+  }
 
   const toggleLayer = useCallback((key: LayerKey) => {
     setLayers((prev) => ({ ...prev, [key]: !prev[key] }))
   }, [])
 
-  const handleOrder = useCallback((serviceId: string) => {
-    // TODO Sprint 3: redirect to login → payment
-    console.info('order service:', serviceId)
+  const handleOrder = useCallback((_serviceId: string) => {
+    // ParcelPanel handles the /api/order call directly
   }, [])
 
+  // ── Mock parcel click (GeoJSON layer) ─────────────────────────────
   const handleSelect = useCallback((parcel: Parcel) => {
     setSelected(parcel)
-  }, [])
+    flyTo(parcel.center[0], parcel.center[1], 17)
+  }, [flyTo])
+
+  // ── WMS click → identify via WFS ─────────────────────────────────
+  const handleMapClick = useCallback(async (lat: number, lng: number) => {
+    if (identifying) return
+    setIdentifying(true)
+    try {
+      const res = await fetch(`/api/parcel/identify?lat=${lat}&lng=${lng}`)
+      if (res.ok) {
+        const info = await res.json()
+        const parcel = dzkToParcel(info)
+        setSelected(parcel)
+        flyTo(parcel.center[0], parcel.center[1], 17)
+      }
+      // 404 = порожня ділянка — нічого не робимо
+    } catch {
+      // Network error — ignore silently
+    } finally {
+      setIdentifying(false)
+    }
+  }, [identifying, flyTo])
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -99,8 +140,7 @@ export default function MapClient() {
           <LeftPanel
             layers={layers}
             onToggleLayer={toggleLayer}
-            searchValue={searchValue}
-            onSearchChange={setSearchValue}
+            search={search}
           />
         </aside>
 
@@ -109,15 +149,26 @@ export default function MapClient() {
           <CadastralMap
             selectedId={selected?.id ?? null}
             onSelect={handleSelect}
+            onMapClick={handleMapClick}
             layers={layers}
             mapRef={mapRef}
           />
 
+          {/* Identify loading indicator */}
+          {identifying && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow text-[13px] z-[10]">
+              <span className="w-2 h-2 rounded-full bg-green animate-pulse flex-shrink-0" />
+              Визначаємо ділянку…
+            </div>
+          )}
+
           {/* Hint badge */}
-          <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 bg-white rounded px-4 py-2.5 shadow text-[13px] z-[5]">
-            <span className="w-2 h-2 rounded-full bg-green flex-shrink-0" />
-            Клацніть будь-яку ділянку — побачите дані і ціни
-          </div>
+          {!selected && (
+            <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 bg-white rounded px-4 py-2.5 shadow text-[13px] z-[5]">
+              <span className="w-2 h-2 rounded-full bg-green flex-shrink-0" />
+              Клацніть будь-яку ділянку або введіть кадастровий номер
+            </div>
+          )}
 
           {/* Desktop map controls */}
           <div className="hidden md:flex">
@@ -127,8 +178,8 @@ export default function MapClient() {
           {/* Mobile search bar */}
           <div className="flex md:hidden items-center gap-2 absolute top-0 left-0 right-0 z-[5] px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
             <input
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+              value={search.query}
+              onChange={(e) => search.setQuery(e.target.value)}
               placeholder="Адреса або кадастровий №"
               className="flex-1 h-10 pl-4 pr-3 text-small border border-gray-300 rounded focus:outline-none focus:border-black"
             />
@@ -176,7 +227,7 @@ export default function MapClient() {
           <div className="p-3 border-t border-gray-100 bg-white">
             <button
               type="button"
-              onClick={() => handleOrder('full')}
+              onClick={() => handleOrder('FULL')}
               className="flex items-center justify-center w-full h-[52px] rounded-full bg-green text-white font-medium text-body hover:bg-green-hover transition-colors"
             >
               Замовити повний звіт за 400 грн
@@ -202,8 +253,7 @@ export default function MapClient() {
             <LeftPanel
               layers={layers}
               onToggleLayer={toggleLayer}
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
+              search={search}
             />
           </aside>
         </div>
