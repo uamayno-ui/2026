@@ -88,6 +88,7 @@ export default function LeftPanel({ layers, onToggleLayer, search }: LeftPanelPr
           suggestions={search.suggestions}
           searching={search.searching}
           error={search.error}
+          hint={search.hint}
           onSelect={search.selectSuggestion}
           onClear={search.clearResults}
           placeholder="Адреса або кадастровий №"

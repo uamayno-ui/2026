@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { Search, X, Loader2, MapPin, Hash, AlertCircle } from 'lucide-react'
+import { Search, X, Loader2, MapPin, Hash, AlertCircle, Info } from 'lucide-react'
 import type { SearchSuggestion } from '@/hooks/useMapSearch'
 
 interface SearchBoxProps {
@@ -10,6 +10,7 @@ interface SearchBoxProps {
   suggestions: SearchSuggestion[]
   searching:   boolean
   error:       string | null
+  hint?:       string | null
   onSelect:    (s: SearchSuggestion) => void
   onClear:     () => void
   placeholder?: string
@@ -17,7 +18,7 @@ interface SearchBoxProps {
 }
 
 export default function SearchBox({
-  value, onChange, suggestions, searching, error,
+  value, onChange, suggestions, searching, error, hint,
   onSelect, onClear, placeholder = 'Адреса або кадастровий номер', className = '',
 }: SearchBoxProps) {
   const [focused,    setFocused]   = useState(false)
@@ -25,7 +26,7 @@ export default function SearchBox({
   const inputRef    = useRef<HTMLInputElement>(null)
   const listRef     = useRef<HTMLUListElement>(null)
 
-  const showDropdown = focused && (suggestions.length > 0 || !!error)
+  const showDropdown = focused && (suggestions.length > 0 || !!error || !!hint)
 
   // Reset active index on new suggestions
   useEffect(() => { setActiveIdx(-1) }, [suggestions])
@@ -121,6 +122,12 @@ export default function SearchBox({
                 </li>
               ))}
             </ul>
+          )}
+          {hint && !error && (
+            <div className="flex items-center gap-2.5 px-4 py-3 text-[13px] text-gray-500">
+              <Info size={15} strokeWidth={1.5} className="flex-shrink-0 text-blue-400" />
+              {hint}
+            </div>
           )}
           {error && (
             <div className="flex items-center gap-2.5 px-4 py-3 text-[13px] text-gray-500">

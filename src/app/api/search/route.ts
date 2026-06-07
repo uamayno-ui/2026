@@ -31,12 +31,15 @@ export async function GET(req: NextRequest) {
       'accept-language': 'uk',
     })
 
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 6000) // 6s timeout
+
     const res = await fetch(`${NOMINATIM}?${params}`, {
-      headers: {
-        'User-Agent': 'Mayno/1.0 (mayno.ua; contact@mayno.ua)',
-      },
-      next: { revalidate: 300 }, // кеш 5 хв
+      headers: { 'User-Agent': 'Mayno/1.0 (mayno.ua; contact@mayno.ua)' },
+      signal: controller.signal,
+      next: { revalidate: 300 },
     })
+    clearTimeout(timer)
 
     if (!res.ok) throw new Error(`Nominatim error: ${res.status}`)
     const results: SearchResult[] = await res.json()
