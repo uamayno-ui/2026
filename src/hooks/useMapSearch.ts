@@ -26,11 +26,12 @@ export function formatKadnumInput(raw: string): string {
 }
 
 export interface SearchSuggestion {
-  id:    string | number
-  label: string
-  lat:   number
-  lng:   number
-  type:  'address' | 'parcel'
+  id:     string | number
+  label:  string
+  sub?:   string   // підпис (місто/район) — для адрес
+  lat:    number
+  lng:    number
+  type:   'address' | 'parcel'
   parcel?: Parcel
 }
 
@@ -159,11 +160,13 @@ export function useMapSearch({
         clearTimeout(timer)
         if (!res.ok) throw new Error()
         const results = await res.json() as {
-          id: number; label: string; lat: number; lng: number; type: string
+          id: number; label: string; short?: string; sub?: string
+          lat: number; lng: number; type: string
         }[]
         setSuggestions(results.map((r) => ({
           id:    r.id,
-          label: r.label,
+          label: r.short ?? r.label.split(',')[0].trim(),
+          sub:   r.sub,
           lat:   r.lat,
           lng:   r.lng,
           type:  'address' as const,
@@ -185,8 +188,9 @@ export function useMapSearch({
 
   const selectSuggestion = useCallback((s: SearchSuggestion) => {
     if (s.parcel) onParcelFound?.(s.parcel)
-    onFlyTo?.(s.lat, s.lng, s.type === 'parcel' ? 17 : 14)
-    setQueryRaw(s.type === 'parcel' ? s.label : s.label.split(',')[0].trim())
+    // Адреса → zoom 17 (рівень будинку), ділянка → 17 (вже є)
+    onFlyTo?.(s.lat, s.lng, 17)
+    setQueryRaw(s.label)
     setSuggestions([])
     setHint(null)
   }, [onParcelFound, onFlyTo])

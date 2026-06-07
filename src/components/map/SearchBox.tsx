@@ -114,9 +114,12 @@ export default function SearchBox({
                         )}
                       </>
                     ) : (
-                      <span className="leading-snug text-gray-700 break-words">
-                        {s.label}
-                      </span>
+                      <>
+                        <span className="leading-snug text-gray-700">{s.label}</span>
+                        {s.sub && (
+                          <span className="block text-[11px] text-gray-400 mt-0.5 truncate">{s.sub}</span>
+                        )}
+                      </>
                     )}
                   </span>
                 </li>
