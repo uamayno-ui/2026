@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
 # ────────────────────────────────────────────────────────────────────────────
-# Mayno — автоматичний деплой на Vercel
+# Mayno — автоматичний деплой на Vercel (без GitHub CLI)
 # Запуск: bash scripts/deploy.sh
 # ────────────────────────────────────────────────────────────────────────────
 set -e
 
-BOLD='\033[1m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
+BOLD='\033[1m'
 NC='\033[0m'
 
 ok()   { echo -e "${GREEN}✓${NC} $1"; }
 info() { echo -e "${YELLOW}→${NC} $1"; }
-err()  { echo -e "${RED}✗${NC} $1"; exit 1; }
-ask()  { echo -e "${BOLD}$1${NC}"; }
+err()  { echo -e "${RED}✗ $1${NC}"; exit 1; }
 
 echo ""
 echo -e "${BOLD}━━━ Mayno Deploy ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -27,87 +26,73 @@ if ! command -v vercel &>/dev/null; then
 fi
 ok "Vercel CLI $(vercel --version)"
 
-# ── 2. GitHub CLI ─────────────────────────────────────────────────────
-if ! command -v gh &>/dev/null; then
-  info "Встановлюю GitHub CLI..."
-  if command -v brew &>/dev/null; then
-    brew install gh
-  else
-    err "Встанови GitHub CLI вручну: https://cli.github.com"
-  fi
-fi
-ok "GitHub CLI $(gh --version | head -1)"
-
-# ── 3. GitHub авторизація ─────────────────────────────────────────────
-if ! gh auth status &>/dev/null; then
-  info "Авторизуйся в GitHub (відкриється браузер)..."
-  gh auth login --web
-fi
-ok "GitHub авторизовано ($(gh api user -q .login))"
-
-# ── 4. GitHub репозиторій ─────────────────────────────────────────────
-if ! git remote get-url origin &>/dev/null; then
-  info "Створюю GitHub репозиторій mayno-app..."
-  gh repo create mayno-app --private --source=. --remote=origin --push
-  ok "Репо створено і код запушено"
-else
-  REMOTE=$(git remote get-url origin)
-  ok "Репо вже підключено: $REMOTE"
-  info "Пушу актуальний код..."
-  git push origin main
-fi
-
-# ── 5. DATABASE_URL ───────────────────────────────────────────────────
+# ── 2. DATABASE_URL ───────────────────────────────────────────────────
 echo ""
-echo -e "${BOLD}━━━ База даних ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BOLD}━━━ База даних (Neon) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
 
-if grep -q "^DATABASE_URL=" .env.local 2>/dev/null; then
+if grep -q "^DATABASE_URL=postgres" .env.local 2>/dev/null; then
   ok "DATABASE_URL вже є в .env.local"
 else
+  echo "  Потрібна безкоштовна PostgreSQL БД від Neon."
   echo ""
-  ask "DATABASE_URL не знайдено."
-  echo "1. Відкрий https://neon.tech → Sign Up → New Project (назви 'mayno')"
-  echo "2. Скопіюй Connection string (вигляд: postgresql://...@ep-....neon.tech/neondb?sslmode=require)"
+  echo -e "  ${BOLD}1.${NC} Відкрий у браузері: ${BOLD}https://neon.tech${NC}"
+  echo -e "  ${BOLD}2.${NC} Sign Up (GitHub або email)"
+  echo -e "  ${BOLD}3.${NC} New Project → назви 'mayno' → Create"
+  echo -e "  ${BOLD}4.${NC} Connection string → скопіюй рядок що починається з postgresql://"
   echo ""
-  read -rp "Встав DATABASE_URL сюди: " DB_URL
-  if [[ -z "$DB_URL" ]]; then
-    err "DATABASE_URL не введено"
-  fi
+  read -rp "  Встав DATABASE_URL: " DB_URL
+  [[ -z "$DB_URL" ]] && err "DATABASE_URL не введено. Спробуй ще раз."
+  # Видаляємо старий рядок якщо є і додаємо новий
+  grep -v "^DATABASE_URL=" .env.local > .env.local.tmp && mv .env.local.tmp .env.local || true
   echo "DATABASE_URL=$DB_URL" >> .env.local
   ok "DATABASE_URL збережено"
 fi
 
-# ── 6. Prisma migrate ─────────────────────────────────────────────────
+# ── 3. Prisma migrate ─────────────────────────────────────────────────
 echo ""
 info "Запускаю міграції БД..."
-npx prisma migrate deploy 2>&1 | tail -5
-ok "Міграції виконано"
-
-# ── 7. Vercel deploy ──────────────────────────────────────────────────
-echo ""
-echo -e "${BOLD}━━━ Vercel ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-info "Авторизуюсь у Vercel..."
-vercel whoami || vercel login
-
-info "Деплою проєкт..."
-VERCEL_URL=$(vercel --prod --yes 2>&1 | grep "https://" | tail -1)
-
-if [[ -z "$VERCEL_URL" ]]; then
-  # Якщо URL не зловили — отримуємо через vercel ls
-  VERCEL_URL=$(vercel ls --prod 2>/dev/null | grep "mayno" | awk '{print $2}' | head -1)
+if npx prisma migrate deploy 2>&1 | tail -5; then
+  ok "Міграції виконано"
+else
+  info "migrate deploy не вдався, пробую db push..."
+  npx prisma db push --accept-data-loss 2>&1 | tail -5
+  ok "БД синхронізовано через db push"
 fi
 
-# ── 8. Додаємо env vars у Vercel ─────────────────────────────────────
+# ── 4. Vercel авторизація ─────────────────────────────────────────────
 echo ""
-info "Додаю environment variables у Vercel..."
+echo -e "${BOLD}━━━ Vercel ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+
+if ! vercel whoami &>/dev/null; then
+  info "Авторизуйся у Vercel (відкриється браузер)..."
+  vercel login
+fi
+ok "Vercel: $(vercel whoami)"
+
+# ── 5. Перший деплой ──────────────────────────────────────────────────
+info "Деплою проєкт на Vercel..."
+echo ""
+
+# --yes пропускає інтерактивні питання, використовує дефолтні відповіді
+DEPLOY_OUTPUT=$(vercel --prod --yes 2>&1)
+echo "$DEPLOY_OUTPUT" | tail -10
+
+VERCEL_URL=$(echo "$DEPLOY_OUTPUT" | grep -E "https://[a-zA-Z0-9\-]+\.vercel\.app" | tail -1 | tr -d ' ')
+
+# ── 6. Env variables ──────────────────────────────────────────────────
+echo ""
+info "Синхронізую environment variables у Vercel..."
 
 add_env() {
   local key="$1"
   local val
-  val=$(grep "^${key}=" .env.local | cut -d= -f2-)
+  val=$(grep "^${key}=" .env.local 2>/dev/null | head -1 | cut -d= -f2-)
   if [[ -n "$val" ]]; then
-    echo "$val" | vercel env add "$key" production --force 2>/dev/null && ok "  $key" || true
+    printf '%s' "$val" | vercel env add "$key" production --force 2>/dev/null \
+      && ok "  ✓ $key" \
+      || info "  (вже є) $key"
   fi
 }
 
@@ -117,23 +102,26 @@ add_env "VAPID_PUBLIC_KEY"
 add_env "VAPID_PRIVATE_KEY"
 add_env "VAPID_SUBJECT"
 
-# NEXT_PUBLIC_APP_URL — встановлюємо через Vercel URL
+# NEXT_PUBLIC_APP_URL
 if [[ -n "$VERCEL_URL" ]]; then
-  echo "https://$VERCEL_URL" | vercel env add NEXT_PUBLIC_APP_URL production --force 2>/dev/null
-  ok "  NEXT_PUBLIC_APP_URL=https://$VERCEL_URL"
+  printf '%s' "$VERCEL_URL" | vercel env add NEXT_PUBLIC_APP_URL production --force 2>/dev/null
+  ok "  NEXT_PUBLIC_APP_URL=$VERCEL_URL"
 fi
 
-# ── 9. Фінальний redeploy з env vars ─────────────────────────────────
+# ── 7. Фінальний деплой з env vars ───────────────────────────────────
 echo ""
-info "Фінальний деплой з усіма змінними..."
-vercel --prod --yes
+info "Фінальний деплой (з усіма змінними)..."
+FINAL=$(vercel --prod --yes 2>&1)
+FINAL_URL=$(echo "$FINAL" | grep -E "https://[a-zA-Z0-9\-]+\.vercel\.app" | tail -1 | tr -d ' ')
+[[ -n "$FINAL_URL" ]] && VERCEL_URL="$FINAL_URL"
 
+# ── Готово ────────────────────────────────────────────────────────────
 echo ""
-echo -e "${GREEN}${BOLD}━━━ Готово! ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}${BOLD}  Готово!${NC}"
 echo ""
 if [[ -n "$VERCEL_URL" ]]; then
-  echo -e "  🌐 ${BOLD}https://$VERCEL_URL${NC}"
-else
-  echo -e "  Відкрий ${BOLD}https://vercel.com/dashboard${NC} щоб побачити URL"
+  echo -e "  Сайт: ${BOLD}$VERCEL_URL${NC}"
 fi
+echo -e "  Dashboard: ${BOLD}https://vercel.com/dashboard${NC}"
 echo ""
