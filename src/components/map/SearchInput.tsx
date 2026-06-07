@@ -197,7 +197,7 @@ export default function SearchInput({
           <button
             type="button"
             onMouseDown={(e) => { e.preventDefault(); handleClear() }}
-            className="flex items-center justify-center w-8 h-8 rounded hover:bg-gray-100 transition-colors shrink-0"
+            className="flex items-center justify-center w-[32px] h-[32px] rounded hover:bg-gray-100 transition-colors shrink-0"
             aria-label="Очистити"
           >
             <X size={16} strokeWidth={1.5} className="text-gray-400" />
@@ -207,7 +207,7 @@ export default function SearchInput({
         <button
           type="button"
           onClick={() => navigate(query)}
-          className="shrink-0 inline-flex items-center justify-center h-10 px-5 rounded-full bg-black text-white text-small font-medium hover:bg-black-hover active:bg-black-press active:scale-[0.98] transition-all duration-fast whitespace-nowrap"
+          className="shrink-0 inline-flex items-center justify-center h-12 px-6 rounded-full bg-black text-white text-small font-medium hover:bg-black-hover active:bg-black-press active:scale-[0.98] transition-all duration-fast whitespace-nowrap"
         >
           Знайти
         </button>

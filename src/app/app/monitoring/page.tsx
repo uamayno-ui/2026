@@ -52,7 +52,7 @@ export default function MonitoringPage() {
         <h1 className="text-[22px] md:text-h2 font-bold tracking-[-0.02em]">Моніторинг</h1>
         <Link
           href="/map"
-          className="inline-flex items-center gap-2 h-10 px-5 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
+          className="shrink-0 inline-flex items-center gap-2 h-[40px] px-5 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
         >
           <Plus size={16} strokeWidth={1.5} />
           Додати
@@ -84,7 +84,7 @@ export default function MonitoringPage() {
 
                 {/* Status icon */}
                 <div className={[
-                  'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5',
+                  'w-[36px] h-[36px] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5',
                   obj.status === 'changed' ? 'bg-amber-50' : 'bg-surface-green',
                 ].join(' ')}>
                   {obj.status === 'changed'
@@ -115,7 +115,7 @@ export default function MonitoringPage() {
                 )}
                 <button
                   type="button"
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-soft transition-colors text-gray-400 hover:text-black"
+                  className="w-[32px] h-[32px] flex items-center justify-center rounded-full hover:bg-surface-soft transition-colors text-gray-400 hover:text-black"
                   title="Вимкнути сповіщення"
                 >
                   <Bell size={15} strokeWidth={1.5} />
@@ -152,7 +152,7 @@ export default function MonitoringPage() {
                 </p>
                 <Link
                   href={`/parcel/${obj.kadnum}`}
-                  className="inline-flex items-center gap-1 h-8 px-3 rounded-full bg-amber-600 text-white text-[12px] font-medium no-underline hover:bg-amber-700 transition-colors whitespace-nowrap flex-shrink-0"
+                  className="inline-flex items-center gap-1 h-[32px] px-3 rounded-full bg-amber-600 text-white text-[12px] font-medium no-underline hover:bg-amber-700 transition-colors whitespace-nowrap flex-shrink-0"
                 >
                   Переглянути
                   <ArrowRight size={13} strokeWidth={1.5} />

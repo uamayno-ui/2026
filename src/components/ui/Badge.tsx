@@ -21,7 +21,7 @@ export default function Badge({
     <span
       className={[
         'inline-flex items-center',
-        'h-7 px-3 rounded-full',
+        'h-[28px] px-3 rounded-full',
         'text-small font-medium',
         variantClasses[variant],
         className,

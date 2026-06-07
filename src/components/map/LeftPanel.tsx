@@ -51,7 +51,7 @@ function Toggle({ active, onToggle }: { active: boolean; onToggle: () => void })
       type="button"
       onClick={(e) => { e.preventDefault(); onToggle() }}
       className={[
-        'relative w-9 h-5 rounded-full border-0 cursor-pointer flex-shrink-0',
+        'relative w-[36px] h-[20px] rounded-full border-0 cursor-pointer flex-shrink-0',
         'transition-colors duration-fast',
         active ? 'bg-black' : 'bg-gray-300',
       ].join(' ')}
@@ -109,7 +109,7 @@ export default function LeftPanel({ layers, onToggleLayer, search }: LeftPanelPr
               <div className="text-tiny uppercase text-gray-500 mb-2">Цільове призначення</div>
               <div className="flex flex-wrap gap-1.5">
                 {PURPOSES.map((t) => (
-                  <button key={t} type="button" className="h-8 px-3 text-[13px] font-medium border border-gray-300 bg-white rounded-full cursor-pointer hover:border-black transition-colors">
+                  <button key={t} type="button" className="shrink-0 h-[32px] px-3 text-[13px] font-medium border border-gray-300 bg-white rounded-full cursor-pointer hover:border-black transition-colors">
                     {t}
                   </button>
                 ))}
@@ -118,8 +118,8 @@ export default function LeftPanel({ layers, onToggleLayer, search }: LeftPanelPr
             <div>
               <div className="text-tiny uppercase text-gray-500 mb-2">Площа</div>
               <div className="flex gap-2">
-                <input placeholder="від" className="flex-1 h-9 px-3 text-[13px] border border-gray-300 rounded focus:outline-none focus:border-black" />
-                <input placeholder="до" className="flex-1 h-9 px-3 text-[13px] border border-gray-300 rounded focus:outline-none focus:border-black" />
+                <input placeholder="від" className="flex-1 h-[36px] px-3 text-[13px] border border-gray-300 rounded focus:outline-none focus:border-black" />
+                <input placeholder="до" className="flex-1 h-[36px] px-3 text-[13px] border border-gray-300 rounded focus:outline-none focus:border-black" />
               </div>
             </div>
           </div>
@@ -132,7 +132,7 @@ export default function LeftPanel({ layers, onToggleLayer, search }: LeftPanelPr
               { icon: <Route   size={18} strokeWidth={1.5} />, label: 'Вимірювання відстані' },
               { icon: <Download size={18} strokeWidth={1.5} />, label: 'Експорт обраного' },
             ].map(({ icon, label }) => (
-              <button key={label} type="button" className="flex items-center gap-2.5 w-full h-10 px-3 text-[14px] text-black rounded hover:bg-surface-soft transition-colors">
+              <button key={label} type="button" className="flex items-center gap-2.5 w-full h-[40px] px-3 text-[14px] text-black rounded hover:bg-surface-soft transition-colors">
                 <span className="text-gray-500">{icon}</span>
                 {label}
               </button>

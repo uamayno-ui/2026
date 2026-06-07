@@ -180,15 +180,15 @@ export default async function ParcelPage(
 
                 {/* quick stats */}
                 <div className="flex flex-wrap gap-3">
-                  <div className="inline-flex items-center gap-2 h-9 px-4 bg-surface-soft rounded-full text-small font-medium">
+                  <div className="inline-flex items-center gap-2 h-[36px] px-4 bg-surface-soft rounded-full text-small font-medium">
                     <Ruler size={14} strokeWidth={1.5} className="text-gray-500" />
                     {parcel.area}
                   </div>
-                  <div className="inline-flex items-center gap-2 h-9 px-4 bg-surface-soft rounded-full text-small font-medium">
+                  <div className="inline-flex items-center gap-2 h-[36px] px-4 bg-surface-soft rounded-full text-small font-medium">
                     <Layers size={14} strokeWidth={1.5} className="text-gray-500" />
                     {parcel.category}
                   </div>
-                  <div className="inline-flex items-center gap-2 h-9 px-4 bg-surface-soft rounded-full text-small font-medium">
+                  <div className="inline-flex items-center gap-2 h-[36px] px-4 bg-surface-soft rounded-full text-small font-medium">
                     {parcel.hasRestrictions
                       ? <AlertCircle size={14} strokeWidth={1.5} className="text-red-500" />
                       : <ShieldCheck size={14} strokeWidth={1.5} className="text-green" />
@@ -257,7 +257,7 @@ export default async function ParcelPage(
                     </div>
                     <Link
                       href="/login"
-                      className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-black text-small font-medium no-underline hover:bg-surface-soft transition-colors whitespace-nowrap"
+                      className="shrink-0 inline-flex items-center gap-1.5 h-[36px] px-4 rounded-full border border-black text-small font-medium no-underline hover:bg-surface-soft transition-colors whitespace-nowrap"
                     >
                       <FileText size={14} strokeWidth={1.5} />
                       Офіційний НГО
@@ -287,7 +287,7 @@ export default async function ParcelPage(
                     </div>
                     <Link
                       href="/login"
-                      className="inline-flex items-center justify-center h-10 px-6 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
+                      className="shrink-0 inline-flex items-center justify-center h-[40px] px-6 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
                     >
                       Увійти через ЕЦП
                     </Link>
@@ -338,7 +338,7 @@ export default async function ParcelPage(
                           featured ? 'bg-surface-green' : '',
                         ].join(' ')}
                       >
-                        <div className="w-9 h-9 rounded flex items-center justify-center bg-white border border-gray-200 flex-shrink-0">
+                        <div className="w-[36px] h-[36px] rounded flex items-center justify-center bg-white border border-gray-200 flex-shrink-0">
                           <Icon size={16} strokeWidth={1.5} className="text-black" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -358,7 +358,7 @@ export default async function ParcelPage(
                             </div>
                             <Link
                               href="/login"
-                              className="inline-flex items-center h-7 px-3 rounded-full bg-black text-white text-[12px] font-medium no-underline hover:bg-black-hover transition-colors"
+                              className="shrink-0 inline-flex items-center h-[28px] px-3 rounded-full bg-black text-white text-[12px] font-medium no-underline hover:bg-black-hover transition-colors"
                             >
                               Замовити
                             </Link>
@@ -379,7 +379,7 @@ export default async function ParcelPage(
                 {/* Monitoring promo */}
                 <div className="bg-white rounded-lg border border-gray-200 p-5">
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded flex items-center justify-center bg-surface-green flex-shrink-0">
+                    <div className="w-[36px] h-[36px] rounded flex items-center justify-center bg-surface-green flex-shrink-0">
                       <ShieldCheck size={16} strokeWidth={1.5} className="text-green" />
                     </div>
                     <div>

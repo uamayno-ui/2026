@@ -238,13 +238,13 @@ export default function PricingPage() {
                   key={title}
                   className="bg-white rounded p-5 md:p-6 flex items-start gap-4 border border-transparent hover:border-gray-300 transition-colors"
                 >
-                  <div className="w-10 h-10 flex items-center justify-center rounded bg-surface-soft flex-shrink-0">
+                  <div className="w-[40px] h-[40px] flex items-center justify-center rounded bg-surface-soft flex-shrink-0">
                     <Icon size={20} strokeWidth={1.5} className="text-black" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <span className="text-[16px] font-semibold">{title}</span>
-                      <span className="inline-flex items-center h-7 px-3 rounded-full bg-black text-white text-small font-medium whitespace-nowrap flex-shrink-0">
+                      <span className="inline-flex items-center h-[28px] px-3 rounded-full bg-black text-white text-small font-medium whitespace-nowrap flex-shrink-0">
                         {price}
                       </span>
                     </div>
@@ -260,7 +260,7 @@ export default function PricingPage() {
             <div className="mt-8 text-center">
               <Link
                 href="/map"
-                className="inline-flex items-center gap-2 h-12 px-6 rounded-full bg-black text-white font-medium text-body no-underline hover:bg-black-hover transition-colors"
+                className="shrink-0 inline-flex items-center gap-2 h-12 px-6 rounded-full bg-black text-white font-medium text-body no-underline hover:bg-black-hover transition-colors"
               >
                 Замовити на мапі
                 <ArrowRight size={18} strokeWidth={1.5} />
@@ -293,13 +293,13 @@ export default function PricingPage() {
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Link
                 href="/map"
-                className="inline-flex items-center justify-center h-14 px-8 rounded-full bg-green text-white font-medium text-body-l no-underline hover:bg-green-hover transition-colors"
+                className="shrink-0 inline-flex items-center justify-center h-14 px-8 rounded-full bg-green text-white font-medium text-body-l no-underline hover:bg-green-hover transition-colors"
               >
                 Відкрити мапу
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center h-14 px-8 rounded-full border border-white text-white font-medium text-body-l no-underline hover:bg-white/10 transition-colors"
+                className="shrink-0 inline-flex items-center justify-center h-14 px-8 rounded-full border border-white text-white font-medium text-body-l no-underline hover:bg-white/10 transition-colors"
               >
                 Увійти через ЕЦП
               </Link>

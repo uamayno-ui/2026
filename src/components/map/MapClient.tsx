@@ -55,11 +55,11 @@ function MapControls({
         hasPanel ? 'right-[444px]' : 'right-6',
       ].join(' ')}
     >
-      <button type="button" onClick={zoomIn}  className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Збільшити"><Plus  size={20} strokeWidth={1.5} /></button>
-      <button type="button" onClick={zoomOut} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Зменшити"><Minus size={20} strokeWidth={1.5} /></button>
+      <button type="button" onClick={zoomIn}  className="w-[40px] h-[40px] flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Збільшити"><Plus  size={20} strokeWidth={1.5} /></button>
+      <button type="button" onClick={zoomOut} className="w-[40px] h-[40px] flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Зменшити"><Minus size={20} strokeWidth={1.5} /></button>
       <div className="h-2" />
-      <button type="button" onClick={flyHome} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Київ"><Locate  size={20} strokeWidth={1.5} /></button>
-      <button type="button" onClick={flyUA}   className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Вся Україна"><Globe size={18} strokeWidth={1.5} /></button>
+      <button type="button" onClick={flyHome} className="w-[40px] h-[40px] flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Київ"><Locate  size={20} strokeWidth={1.5} /></button>
+      <button type="button" onClick={flyUA}   className="w-[40px] h-[40px] flex items-center justify-center bg-white rounded shadow-sm hover:bg-gray-100 transition-colors" aria-label="Вся Україна"><Globe size={18} strokeWidth={1.5} /></button>
     </div>
   )
 }
@@ -180,12 +180,12 @@ export default function MapClient() {
               value={search.query}
               onChange={(e) => search.setQuery(e.target.value)}
               placeholder="Адреса або кадастровий №"
-              className="flex-1 h-10 pl-4 pr-3 text-small border border-gray-300 rounded focus:outline-none focus:border-black"
+              className="flex-1 h-[40px] pl-4 pr-3 text-small border border-gray-300 rounded focus:outline-none focus:border-black"
             />
             <button
               type="button"
               onClick={() => setFiltersOpen(true)}
-              className="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+              className="w-[40px] h-[40px] flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors"
               aria-label="Фільтри"
             >
               <Filter size={18} strokeWidth={1.5} />
@@ -197,9 +197,9 @@ export default function MapClient() {
             className="flex md:hidden flex-col gap-1.5 absolute right-3 z-[5]"
             style={{ bottom: selected ? 'calc(70% + 12px)' : '80px', transition: 'bottom 200ms' }}
           >
-            <button type="button" onClick={() => mapRef.current?.zoomIn()}  className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Plus  size={20} strokeWidth={1.5} /></button>
-            <button type="button" onClick={() => mapRef.current?.zoomOut()} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Minus size={20} strokeWidth={1.5} /></button>
-            <button type="button" onClick={() => mapRef.current?.flyTo({ center: [KYIV_CENTER[1], KYIV_CENTER[0]], zoom: 17 })} className="w-10 h-10 flex items-center justify-center bg-white rounded shadow-sm"><Locate size={20} strokeWidth={1.5} /></button>
+            <button type="button" onClick={() => mapRef.current?.zoomIn()}  className="w-[40px] h-[40px] flex items-center justify-center bg-white rounded shadow-sm"><Plus  size={20} strokeWidth={1.5} /></button>
+            <button type="button" onClick={() => mapRef.current?.zoomOut()} className="w-[40px] h-[40px] flex items-center justify-center bg-white rounded shadow-sm"><Minus size={20} strokeWidth={1.5} /></button>
+            <button type="button" onClick={() => mapRef.current?.flyTo({ center: [KYIV_CENTER[1], KYIV_CENTER[0]], zoom: 17 })} className="w-[40px] h-[40px] flex items-center justify-center bg-white rounded shadow-sm"><Locate size={20} strokeWidth={1.5} /></button>
           </div>
         </div>
 
@@ -245,7 +245,7 @@ export default function MapClient() {
           >
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
               <h2 className="text-[17px] font-bold tracking-[-0.005em]">Фільтри і шари</h2>
-              <button type="button" onClick={() => setFiltersOpen(false)} className="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100">
+              <button type="button" onClick={() => setFiltersOpen(false)} className="w-[36px] h-[36px] flex items-center justify-center rounded hover:bg-gray-100">
                 <X size={20} strokeWidth={1.5} />
               </button>
             </div>

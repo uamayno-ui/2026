@@ -57,14 +57,14 @@ export default function BillingPage() {
           <div className="flex gap-2">
             <Link
               href="/pricing"
-              className="inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-green text-white text-small font-medium no-underline hover:bg-green-hover transition-colors"
+              className="shrink-0 inline-flex items-center gap-1.5 h-[40px] px-5 rounded-full bg-green text-white text-small font-medium no-underline hover:bg-green-hover transition-colors"
             >
               <TrendingUp size={15} strokeWidth={1.5} />
               Підвищити план
             </Link>
             <button
               type="button"
-              className="inline-flex items-center h-10 px-4 rounded-full border border-gray-300 text-small font-medium text-gray-600 hover:border-black hover:text-black transition-colors"
+              className="shrink-0 inline-flex items-center h-[40px] px-4 rounded-full border border-gray-300 text-small font-medium text-gray-600 hover:border-black hover:text-black transition-colors"
             >
               Скасувати
             </button>
@@ -117,7 +117,7 @@ export default function BillingPage() {
         </div>
         <div className="px-6 py-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-7 bg-surface-soft border border-gray-200 rounded flex items-center justify-center">
+            <div className="w-[40px] h-[28px] bg-surface-soft border border-gray-200 rounded flex items-center justify-center">
               <span className="text-[10px] font-bold text-gray-600">VISA</span>
             </div>
             <div>

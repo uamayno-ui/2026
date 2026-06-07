@@ -91,15 +91,15 @@ export default function HomePage() {
 
             {/* Quick chips */}
             <div className="mt-5 flex justify-center gap-3 flex-wrap">
-              <span className="inline-flex items-center h-8 px-4 rounded-full bg-surface-soft text-[13px] text-gray-500 cursor-default">
+              <span className="inline-flex items-center h-[32px] px-4 rounded-full bg-surface-soft text-[13px] text-gray-500 cursor-default">
                 Київ, вул. Хрещатик, 1
               </span>
-              <span className="inline-flex items-center h-8 px-4 rounded-full bg-surface-soft text-[13px] text-gray-500 font-mono cursor-default">
+              <span className="inline-flex items-center h-[32px] px-4 rounded-full bg-surface-soft text-[13px] text-gray-500 font-mono cursor-default">
                 6310136900:12:001:0025
               </span>
               <Link
                 href="/map"
-                className="inline-flex items-center h-8 px-2 text-[13px] text-black underline underline-offset-2 no-underline hover:underline"
+                className="inline-flex items-center h-[32px] px-2 text-[13px] text-black underline underline-offset-2 no-underline hover:underline"
               >
                 або відкрити мапу →
               </Link>
@@ -160,7 +160,7 @@ export default function HomePage() {
               <div className="flex flex-col gap-5">
                 {FEATURES.map(({ title, desc }) => (
                   <div key={title} className="flex gap-4 items-start">
-                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-green text-white shrink-0">
+                    <div className="flex items-center justify-center w-[28px] h-[28px] rounded-full bg-green text-white shrink-0">
                       <Check size={16} strokeWidth={2.5} />
                     </div>
                     <div>
@@ -209,7 +209,7 @@ export default function HomePage() {
               </div>
               <Link
                 href="/pricing"
-                className="inline-flex items-center justify-center h-12 px-6 rounded-full border border-[1.5px] border-black text-black font-medium text-body no-underline hover:bg-surface-soft transition-colors whitespace-nowrap self-start md:self-auto"
+                className="shrink-0 inline-flex items-center justify-center h-12 px-6 rounded-full border border-[1.5px] border-black text-black font-medium text-body no-underline hover:bg-surface-soft transition-colors whitespace-nowrap self-start md:self-auto"
               >
                 Дивитись усі тарифи
               </Link>
@@ -276,13 +276,13 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Link
                 href="/map"
-                className="inline-flex items-center justify-center h-14 px-8 rounded-full bg-green text-white font-medium text-body-l no-underline hover:bg-green-hover transition-colors"
+                className="shrink-0 inline-flex items-center justify-center h-14 px-8 rounded-full bg-green text-white font-medium text-body-l no-underline hover:bg-green-hover transition-colors"
               >
                 Відкрити мапу
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center h-14 px-8 rounded-full border border-white text-white font-medium text-body-l no-underline hover:bg-white/10 transition-colors"
+                className="shrink-0 inline-flex items-center justify-center h-14 px-8 rounded-full border border-white text-white font-medium text-body-l no-underline hover:bg-white/10 transition-colors"
               >
                 Увійти через ЕЦП
               </Link>

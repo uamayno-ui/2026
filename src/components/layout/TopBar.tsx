@@ -48,7 +48,7 @@ export default function TopBar({ isLoggedIn = false }: TopBarProps) {
               {isLoggedIn ? (
                 <Link
                   href="/app/overview"
-                  className="inline-flex items-center gap-2 h-10 px-4 text-small font-medium rounded-full text-black no-underline hover:bg-gray-100 transition-colors duration-fast"
+                  className="shrink-0 inline-flex items-center gap-2 h-[40px] px-4 text-small font-medium rounded-full text-black no-underline hover:bg-gray-100 transition-colors duration-fast"
                 >
                   <User size={20} strokeWidth={1.5} />
                   Кабінет
@@ -56,7 +56,7 @@ export default function TopBar({ isLoggedIn = false }: TopBarProps) {
               ) : (
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center h-10 px-4 text-small font-medium rounded-full bg-black text-white no-underline hover:bg-black-hover transition-colors duration-fast"
+                  className="shrink-0 inline-flex items-center justify-center h-[40px] px-4 text-small font-medium rounded-full bg-black text-white no-underline hover:bg-black-hover transition-colors duration-fast"
                 >
                   Увійти
                 </Link>
@@ -89,7 +89,7 @@ export default function TopBar({ isLoggedIn = false }: TopBarProps) {
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center h-8 px-3 text-small font-medium rounded-full bg-black text-white no-underline"
+                className="shrink-0 inline-flex items-center justify-center h-[32px] px-3 text-small font-medium rounded-full bg-black text-white no-underline"
               >
                 Увійти
               </Link>

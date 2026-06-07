@@ -49,7 +49,7 @@ export default function LoginForm() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full text-small font-medium text-black hover:bg-gray-100 transition-colors"
+            className="shrink-0 inline-flex items-center gap-1.5 h-[40px] px-4 rounded-full text-small font-medium text-black hover:bg-gray-100 transition-colors"
           >
             <ArrowLeft size={18} strokeWidth={1.5} />
             Назад
@@ -105,7 +105,7 @@ export default function LoginForm() {
               type="button"
               onClick={handleBankId}
               disabled={!!busy}
-              className="inline-flex items-center justify-center gap-2 h-14 px-8 w-full rounded-full bg-black text-white font-medium text-body-l hover:bg-black-hover active:bg-black-press active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="shrink-0 inline-flex items-center justify-center gap-2 h-14 px-8 w-full rounded-full bg-black text-white font-medium text-body-l hover:bg-black-hover active:bg-black-press active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {busy === 'bankid' ? (
                 <>
@@ -136,8 +136,8 @@ export default function LoginForm() {
                   'flex items-center md:flex-col md:items-start justify-between',
                   'h-[72px] md:h-[132px]',
                   'px-5 md:p-5 gap-4 md:gap-0',
-                  'bg-white border border-[1.5px] border-gray-200 rounded',
-                  'cursor-pointer hover:bg-surface-soft transition-all',
+                  'bg-white border-[1.5px] border-black rounded',
+                  'cursor-pointer hover:bg-surface-soft active:scale-[0.99] transition-all',
                   'disabled:opacity-40 disabled:cursor-not-allowed',
                 ].join(' ')}
               >

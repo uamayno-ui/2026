@@ -91,7 +91,7 @@ function NoToken() {
           href="https://account.mapbox.com/access-tokens/"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
+          className="shrink-0 inline-flex items-center gap-1.5 h-[36px] px-4 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
         >
           Отримати токен →
         </a>

@@ -69,7 +69,7 @@ export default function ProfilePage() {
             <label key={label} className="flex items-center gap-4 px-6 py-3.5 cursor-pointer hover:bg-surface-soft/50 transition-colors">
               <span className="flex-1 text-[14px]">{label}</span>
               <div className={[
-                'relative w-9 h-5 rounded-full flex-shrink-0 transition-colors',
+                'relative w-[36px] h-[20px] rounded-full flex-shrink-0 transition-colors',
                 defaultOn ? 'bg-black' : 'bg-gray-300',
               ].join(' ')}>
                 <span className={[
@@ -84,7 +84,7 @@ export default function ProfilePage() {
 
       {/* Telegram connect */}
       <div className="bg-white rounded-lg border border-gray-200 p-5 flex items-start gap-3">
-        <div className="w-9 h-9 rounded-full bg-surface-blue flex items-center justify-center flex-shrink-0">
+        <div className="w-[36px] h-[36px] rounded-full bg-surface-blue flex items-center justify-center flex-shrink-0">
           <Smartphone size={16} strokeWidth={1.5} className="text-black" />
         </div>
         <div className="flex-1">
@@ -94,7 +94,7 @@ export default function ProfilePage() {
           </p>
           <button
             type="button"
-            className="inline-flex items-center h-9 px-4 rounded-full bg-black text-white text-small font-medium hover:bg-black-hover transition-colors"
+            className="shrink-0 inline-flex items-center h-[36px] px-4 rounded-full bg-black text-white text-small font-medium hover:bg-black-hover transition-colors"
           >
             Підключити →
           </button>
@@ -115,7 +115,7 @@ export default function ProfilePage() {
           </div>
           <button
             type="button"
-            className="inline-flex items-center h-9 px-4 rounded-full border border-red-300 text-red-600 text-small font-medium hover:bg-red-50 transition-colors whitespace-nowrap flex-shrink-0"
+            className="inline-flex items-center h-[36px] px-4 rounded-full border border-red-300 text-red-600 text-small font-medium hover:bg-red-50 transition-colors whitespace-nowrap flex-shrink-0"
           >
             Видалити акаунт
           </button>

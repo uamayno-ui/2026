@@ -21,7 +21,7 @@ export default function OfflinePage() {
 
         <button
           onClick={() => window.location.reload()}
-          className="inline-flex items-center justify-center h-11 px-6 rounded-full bg-black text-white text-[15px] font-medium hover:bg-black/80 transition-colors mb-3"
+          className="shrink-0 inline-flex items-center justify-center h-11 px-6 rounded-full bg-black text-white text-[15px] font-medium hover:bg-black/80 transition-colors mb-3"
         >
           Спробувати знову
         </button>

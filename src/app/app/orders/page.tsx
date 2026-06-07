@@ -54,7 +54,7 @@ export default function OrdersPage() {
         <h1 className="text-[22px] md:text-h2 font-bold tracking-[-0.02em]">Замовлення</h1>
         <Link
           href="/map"
-          className="inline-flex items-center gap-2 h-10 px-5 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
+          className="shrink-0 inline-flex items-center gap-2 h-[40px] px-5 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
         >
           Нове замовлення
           <ArrowRight size={16} strokeWidth={1.5} />
@@ -98,7 +98,7 @@ export default function OrdersPage() {
                   <tr key={order.id} className="hover:bg-surface-soft/60 transition-colors">
                     <td className="px-6 py-3.5">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded bg-surface-soft flex items-center justify-center flex-shrink-0">
+                        <div className="w-[28px] h-[28px] rounded bg-surface-soft flex items-center justify-center flex-shrink-0">
                           <Icon size={14} strokeWidth={1.5} className="text-black" />
                         </div>
                         <span className="font-medium">{tm.label}</span>
@@ -123,7 +123,7 @@ export default function OrdersPage() {
                       {order.status === 'DONE' && (
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full border border-gray-300 text-[12px] font-medium text-gray-600 hover:border-black hover:text-black transition-colors"
+                          className="inline-flex items-center gap-1.5 h-[28px] px-3 rounded-full border border-gray-300 text-[12px] font-medium text-gray-600 hover:border-black hover:text-black transition-colors"
                         >
                           <Download size={12} strokeWidth={1.5} />
                           PDF
@@ -132,7 +132,7 @@ export default function OrdersPage() {
                       {order.status === 'FAILED' && (
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full border border-gray-300 text-[12px] font-medium text-gray-500 hover:border-black hover:text-black transition-colors"
+                          className="inline-flex items-center gap-1.5 h-[28px] px-3 rounded-full border border-gray-300 text-[12px] font-medium text-gray-500 hover:border-black hover:text-black transition-colors"
                         >
                           Повторити
                         </button>
@@ -154,7 +154,7 @@ export default function OrdersPage() {
             const StatusIcon = sm.icon
             return (
               <div key={order.id} className="flex items-start gap-3 px-4 py-3.5">
-                <div className="w-8 h-8 rounded bg-surface-soft flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-[32px] h-[32px] rounded bg-surface-soft flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Icon size={14} strokeWidth={1.5} className="text-black" />
                 </div>
                 <div className="flex-1 min-w-0">

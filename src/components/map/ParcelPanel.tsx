@@ -78,7 +78,7 @@ function ServiceCard({
           {svc.desc} · <span className="font-mono">{svc.time}</span>
         </div>
       </div>
-      <span className="inline-flex items-center h-7 px-3 rounded-full bg-green text-white text-small font-medium whitespace-nowrap">
+      <span className="inline-flex items-center h-[28px] px-3 rounded-full bg-green text-white text-small font-medium whitespace-nowrap">
         {svc.price}
       </span>
     </button>
@@ -159,13 +159,13 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
         <div className="flex gap-1 flex-shrink-0">
           <Link
             href={`/parcel/${parcel.kadnum}`}
-            className="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100 transition-colors no-underline text-black"
+            className="w-[36px] h-[36px] flex items-center justify-center rounded hover:bg-gray-100 transition-colors no-underline text-black"
             aria-label="Відкрити сторінку ділянки"
             title="Відкрити сторінку ділянки"
           >
             <ArrowRight size={18} strokeWidth={1.5} />
           </Link>
-          <button type="button" aria-label="Закрити" onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100 transition-colors">
+          <button type="button" aria-label="Закрити" onClick={onClose} className="w-[36px] h-[36px] flex items-center justify-center rounded hover:bg-gray-100 transition-colors">
             <X size={20} strokeWidth={1.5} />
           </button>
         </div>
@@ -231,7 +231,7 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
               { icon: <Route size={18} strokeWidth={1.5} />,    label: 'Маршрут',     action: () => {} },
               { icon: <Share2 size={18} strokeWidth={1.5} />,   label: 'Поділитись',  action: handleCopyLink },
             ].map(({ icon, label, action }) => (
-              <button key={label} type="button" onClick={action} className="flex items-center gap-2 h-10 px-3 text-[14px] text-black rounded hover:bg-surface-soft transition-colors">
+              <button key={label} type="button" onClick={action} className="flex items-center gap-2 h-[40px] px-3 text-[14px] text-black rounded hover:bg-surface-soft transition-colors">
                 <span className="text-gray-500">{icon}</span>
                 {label}
               </button>
@@ -256,7 +256,7 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
               type="button"
               onClick={() => handleOrder('monitor')}
               disabled={isLoading}
-              className="inline-flex items-center justify-center h-10 px-4 rounded-full bg-green text-white text-small font-medium hover:bg-green-hover transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center h-[40px] px-4 rounded-full bg-green text-white text-small font-medium hover:bg-green-hover transition-colors disabled:opacity-50"
             >
               Підписатися на моніторинг
             </button>

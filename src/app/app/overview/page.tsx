@@ -131,7 +131,7 @@ export default function OverviewPage() {
             >
               <div className="flex items-center gap-3">
                 <div className={[
-                  'w-9 h-9 rounded flex items-center justify-center flex-shrink-0',
+                  'w-[36px] h-[36px] rounded flex items-center justify-center flex-shrink-0',
                   featured ? 'bg-green/10' : 'bg-surface-soft',
                 ].join(' ')}>
                   <Icon size={16} strokeWidth={1.5} className={featured ? 'text-green' : 'text-black'} />
@@ -181,7 +181,7 @@ export default function OverviewPage() {
                   <tr key={order.id} className="hover:bg-surface-soft/50 transition-colors">
                     <td className="px-6 py-3.5">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded bg-surface-soft flex items-center justify-center flex-shrink-0">
+                        <div className="w-[28px] h-[28px] rounded bg-surface-soft flex items-center justify-center flex-shrink-0">
                           <Icon size={14} strokeWidth={1.5} className="text-black" />
                         </div>
                         <span className="font-medium">{order.type}</span>
@@ -215,7 +215,7 @@ export default function OverviewPage() {
             const StatusIcon = st.icon
             return (
               <div key={order.id} className="flex items-start gap-3 px-4 py-3.5">
-                <div className="w-8 h-8 rounded bg-surface-soft flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-[32px] h-[32px] rounded bg-surface-soft flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Icon size={14} strokeWidth={1.5} className="text-black" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -243,7 +243,7 @@ export default function OverviewPage() {
       {/* ── UPGRADE BANNER (if on Free) ── */}
       <div className="bg-black text-white rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+          <div className="w-[40px] h-[40px] rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
             <TrendingUp size={20} strokeWidth={1.5} className="text-green" />
           </div>
           <div>
