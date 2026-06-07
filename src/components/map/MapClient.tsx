@@ -146,7 +146,7 @@ export default function MapClient() {
         {/* ── Map ── */}
         <div className="flex-1 relative bg-surface-blue overflow-hidden">
           <CadastralMap
-            selectedId={selected?.id ?? null}
+            highlightParcel={selected}
             onSelect={handleSelect}
             onMapClick={handleMapClick}
             layers={layers}

@@ -1,9 +1,7 @@
 'use client'
 
-import { useRef, useCallback } from 'react'
-import Map, {
-  Source, Layer,
-} from 'react-map-gl/mapbox'
+import { useRef, useCallback, useMemo } from 'react'
+import Map, { Source, Layer } from 'react-map-gl/mapbox'
 import type { MapRef, MapMouseEvent, LayerProps } from 'react-map-gl/mapbox'
 import { ExternalLink } from 'lucide-react'
 import type { Parcel, MapLayers } from '@/types/map'
@@ -12,14 +10,21 @@ import { PARCELS, DECO_PARCELS, KYIV_CENTER, parcelsToGeoJSON, decoToGeoJSON } f
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
 export interface CadastralMapProps {
-  selectedId:   string | null
-  onSelect:     (p: Parcel) => void
-  onMapClick?:  (lat: number, lng: number) => void  // клік поза відомими полігонами
-  layers:       MapLayers
-  mapRef?:      React.RefObject<MapRef | null>
+  highlightParcel?: Parcel | null   // підсвічена ділянка (з WFS або кліку)
+  onSelect:         (p: Parcel) => void
+  onMapClick?:      (lat: number, lng: number) => void
+  layers:           MapLayers
+  mapRef?:          React.RefObject<MapRef | null>
 }
 
-// ── Layer definitions ─────────────────────────────────────────────────
+// ── Layer style definitions ───────────────────────────────────────────
+
+const WMS_LAYER: LayerProps = {
+  id: 'cadastral-wms',
+  type: 'raster',
+  source: 'cadastral-wms',
+  paint: { 'raster-opacity': 0.55 },
+}
 
 const DECO_FILL: LayerProps = {
   id: 'deco-fill',
@@ -33,38 +38,37 @@ const DECO_LINE: LayerProps = {
   source: 'deco',
   paint: { 'line-color': '#0A0A0A', 'line-width': 0.8, 'line-opacity': 0.25 },
 }
-const FILL_BASE: LayerProps = {
+
+// Mock-ділянки — для кліків (interactiveLayerIds)
+const PARCELS_FILL: LayerProps = {
   id: 'parcels-fill',
   type: 'fill',
   source: 'parcels',
   paint: { 'fill-color': '#0A0A0A', 'fill-opacity': 0.07 },
 }
-const LINE_BASE: LayerProps = {
+const PARCELS_LINE: LayerProps = {
   id: 'parcels-line',
   type: 'line',
   source: 'parcels',
   paint: { 'line-color': '#0A0A0A', 'line-width': 1, 'line-opacity': 0.35 },
 }
-const FILL_SEL: LayerProps = {
-  id: 'parcels-fill-sel',
+
+// Виділена ділянка — окремий GeoJSON-шар, працює для БУДЬ-ЯКОЇ ділянки
+const HIGHLIGHT_FILL: LayerProps = {
+  id: 'highlight-fill',
   type: 'fill',
-  source: 'parcels',
-  paint: { 'fill-color': '#22C55E', 'fill-opacity': 0.28 },
+  source: 'highlight',
+  paint: { 'fill-color': '#22C55E', 'fill-opacity': 0.22 },
 }
-const LINE_SEL: LayerProps = {
-  id: 'parcels-line-sel',
+const HIGHLIGHT_LINE: LayerProps = {
+  id: 'highlight-line',
   type: 'line',
-  source: 'parcels',
-  paint: { 'line-color': '#22C55E', 'line-width': 2.5 },
-}
-const WMS_LAYER: LayerProps = {
-  id: 'cadastral-wms',
-  type: 'raster',
-  source: 'cadastral-wms',
-  paint: { 'raster-opacity': 0.55 },
+  source: 'highlight',
+  paint: { 'line-color': '#22C55E', 'line-width': 2.5, 'line-opacity': 1 },
 }
 
 // ── No-token placeholder ──────────────────────────────────────────────
+
 function NoToken() {
   return (
     <div className="w-full h-full flex items-center justify-center bg-surface-soft">
@@ -96,9 +100,14 @@ function NoToken() {
   )
 }
 
+// ── Empty GeoJSON (no highlight) ──────────────────────────────────────
+
+const EMPTY_FC = { type: 'FeatureCollection' as const, features: [] }
+
 // ── Main component ────────────────────────────────────────────────────
+
 export default function CadastralMap({
-  selectedId,
+  highlightParcel,
   onSelect,
   onMapClick,
   layers,
@@ -107,19 +116,27 @@ export default function CadastralMap({
   const internalRef = useRef<MapRef>(null)
   const ref = (mapRef ?? internalRef) as React.RefObject<MapRef>
 
+  // Перетворюємо виділену ділянку у GeoJSON (мемоїзація по id)
+  const highlightGeoJSON = useMemo(
+    () => highlightParcel ? parcelsToGeoJSON([highlightParcel]) : EMPTY_FC,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [highlightParcel?.id],
+  )
+
+  const parcelsGeoJSON = useMemo(() => parcelsToGeoJSON(PARCELS), [])
+  const decoGeoJSON    = useMemo(() => decoToGeoJSON(DECO_PARCELS), [])
+
   const handleClick = useCallback(
     (e: MapMouseEvent) => {
-      // 1. Перевіряємо чи клік по відомому mock-полігону
+      // 1. Клік по mock-полігону (demo ділянки в центрі Києва)
       const id = e.features?.[0]?.properties?.id as string | undefined
       const found = PARCELS.find((p) => p.id === id)
       if (found) {
         onSelect(found)
         return
       }
-      // 2. Клік по порожньому місцю або WMS-шару — передаємо координати нагору
-      if (onMapClick) {
-        onMapClick(e.lngLat.lat, e.lngLat.lng)
-      }
+      // 2. Клік по WMS-шару або порожньому місцю → identify через WFS
+      onMapClick?.(e.lngLat.lat, e.lngLat.lng)
     },
     [onSelect, onMapClick],
   )
@@ -130,21 +147,12 @@ export default function CadastralMap({
     ? 'mapbox://styles/mapbox/satellite-streets-v12'
     : 'mapbox://styles/mapbox/light-v11'
 
-  // Filter: show selected highlight layer only on the matching parcel
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const selFilter: any = selectedId
-    ? ['==', ['get', 'id'], selectedId]
-    : ['boolean', false]
-
-  const parcelsGeoJSON = parcelsToGeoJSON(PARCELS)
-  const decoGeoJSON = decoToGeoJSON(DECO_PARCELS)
-
   return (
     <Map
       ref={ref}
       mapboxAccessToken={TOKEN}
       initialViewState={{
-        longitude: KYIV_CENTER[1], // KYIV_CENTER = [lat, lng] → Mapbox uses lng first
+        longitude: KYIV_CENTER[1],
         latitude:  KYIV_CENTER[0],
         zoom: 14,
       }}
@@ -160,7 +168,6 @@ export default function CadastralMap({
             id="cadastral-wms"
             type="raster"
             tiles={[
-              // Через власний proxy-роут — обходить CORS обмеження map.land.gov.ua
               '/api/wms' +
               '?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1' +
               '&LAYERS=kadastr&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=true' +
@@ -178,14 +185,17 @@ export default function CadastralMap({
         <Layer {...DECO_LINE} />
       </Source>
 
-      {/* ── Interactive parcels ── */}
+      {/* ── Mock interactive parcels (for demo click handling) ── */}
       <Source id="parcels" type="geojson" data={parcelsGeoJSON}>
-        <Layer {...FILL_BASE} />
-        <Layer {...LINE_BASE} />
-        <Layer {...FILL_SEL} filter={selFilter} />
-        <Layer {...LINE_SEL} filter={selFilter} />
+        <Layer {...PARCELS_FILL} />
+        <Layer {...PARCELS_LINE} />
       </Source>
 
+      {/* ── Highlight: виділена ділянка (будь-яка — WFS або mock) ── */}
+      <Source id="highlight" type="geojson" data={highlightGeoJSON}>
+        <Layer {...HIGHLIGHT_FILL} />
+        <Layer {...HIGHLIGHT_LINE} />
+      </Source>
     </Map>
   )
 }
