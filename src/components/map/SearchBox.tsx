@@ -53,22 +53,32 @@ export default function SearchBox({
     <div className={['relative', className].join(' ')}>
       {/* Input */}
       <div className="relative">
-        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-[1]">
+        <span className={[
+          'absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-[1] transition-colors duration-150',
+          focused ? 'text-[#22C55E]' : 'text-gray-400',
+        ].join(' ')}>
           {searching
-            ? <Loader2 size={17} strokeWidth={1.5} className="animate-spin text-gray-400" />
-            : <Search size={17} strokeWidth={1.5} />}
+            ? <Loader2 size={17} strokeWidth={1.5} className="animate-spin" />
+            : <Search  size={17} strokeWidth={1.5} />}
         </span>
         <input
           ref={inputRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => setFocused(true)}
-          onBlur={() => setTimeout(() => setFocused(false), 150)} // delay to allow click on list
+          onBlur={() => setTimeout(() => setFocused(false), 150)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           autoComplete="off"
           spellCheck={false}
-          className="w-full h-11 pl-10 pr-9 text-small bg-white border border-gray-300 rounded hover:border-gray-500 focus:outline-none focus:border-black focus:border-[1.5px] transition-colors"
+          className={[
+            'w-full h-11 pl-10 pr-9 text-small bg-white border rounded transition-all duration-150',
+            'caret-[#22C55E]',   // зелений мигаючий курсор при введенні
+            'focus:outline-none',
+            focused
+              ? 'border-black border-[1.5px] shadow-[0_0_0_3px_rgba(34,197,94,0.12)]'
+              : 'border-gray-300 hover:border-gray-500',
+          ].join(' ')}
         />
         {value && (
           <button

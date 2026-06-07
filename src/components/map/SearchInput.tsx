@@ -161,10 +161,14 @@ export default function SearchInput({
             : 'border-gray-300 rounded',
         ].join(' ')}
       >
-        {loading
-          ? <Loader size={22} strokeWidth={1.5} className="text-gray-400 shrink-0 animate-spin" />
-          : <Search size={22} strokeWidth={1.5} className="text-gray-500 shrink-0" />
-        }
+        <span className={[
+          'transition-colors duration-150 shrink-0',
+          query ? 'text-[#22C55E]' : 'text-gray-400',
+        ].join(' ')}>
+          {loading
+            ? <Loader size={22} strokeWidth={1.5} className="animate-spin" />
+            : <Search size={22} strokeWidth={1.5} />}
+        </span>
 
         <input
           ref={inputRef}
@@ -180,6 +184,7 @@ export default function SearchInput({
             'flex-1 min-w-0 h-full',
             'bg-transparent border-0 outline-none',
             'font-sans placeholder:text-gray-500',
+            'caret-[#22C55E]',
             inputFontSize,
           ].join(' ')}
           aria-label="Пошук нерухомості"
