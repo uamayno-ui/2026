@@ -55,9 +55,7 @@ info "Запускаю міграції БД..."
 if npx prisma migrate deploy 2>&1 | tail -5; then
   ok "Міграції виконано"
 else
-  info "migrate deploy не вдався, пробую db push..."
-  npx prisma db push --accept-data-loss 2>&1 | tail -5
-  ok "БД синхронізовано через db push"
+  err "migrate deploy не вдався. Production deploy зупинено; destructive db push заборонено."
 fi
 
 # ── 4. Vercel авторизація ─────────────────────────────────────────────

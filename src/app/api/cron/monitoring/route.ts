@@ -11,7 +11,8 @@ import { sendPushToUser } from '@/lib/push/webpush'
 function isAuthorized(req: NextRequest): boolean {
   const auth = req.headers.get('authorization')
   const secret = process.env.CRON_SECRET
-  if (!secret) return true // dev: пропускаємо
+  // Local development may run cron manually; production must always set CRON_SECRET.
+  if (!secret) return process.env.NODE_ENV !== 'production'
   return auth === `Bearer ${secret}`
 }
 

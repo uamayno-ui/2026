@@ -16,6 +16,17 @@ function createPrismaClient() {
   })
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+function getPrismaClient() {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient()
+  }
+  return globalForPrisma.prisma
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Lazy init keeps static builds from opening a DB connection. Runtime DB calls
+// still fail explicitly if DATABASE_URL is missing.
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop, receiver) {
+    return Reflect.get(getPrismaClient(), prop, receiver)
+  },
+})
