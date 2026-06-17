@@ -197,7 +197,7 @@ export default function SearchInput({
           <button
             type="button"
             onMouseDown={(e) => { e.preventDefault(); handleClear() }}
-            className="flex items-center justify-center w-[32px] h-[32px] rounded hover:bg-gray-100 transition-colors shrink-0"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors hover:bg-gray-100"
             aria-label="Очистити"
           >
             <X size={16} strokeWidth={1.5} className="text-gray-400" />
@@ -226,7 +226,7 @@ export default function SearchInput({
                 onMouseDown={(e) => { e.preventDefault(); handleSelect(s) }}
                 onMouseEnter={() => setActiveIdx(i)}
                 className={[
-                  'flex items-center gap-4 w-full px-5 py-3 text-left transition-colors',
+                  'inline-flex min-h-12 w-full shrink-0 items-center gap-4 px-5 py-3 text-left transition-colors',
                   i === activeIdx ? 'bg-surface-soft' : 'hover:bg-surface-soft',
                 ].join(' ')}
               >

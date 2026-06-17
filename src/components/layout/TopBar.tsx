@@ -48,7 +48,7 @@ export default function TopBar({ isLoggedIn = false }: TopBarProps) {
               {isLoggedIn ? (
                 <Link
                   href="/app/overview"
-                  className="shrink-0 inline-flex items-center gap-2 h-[40px] px-4 text-small font-medium rounded-full text-black no-underline hover:bg-gray-100 transition-colors duration-fast"
+                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 text-small font-medium text-black no-underline transition-colors duration-fast hover:bg-gray-100"
                 >
                   <User size={20} strokeWidth={1.5} />
                   Кабінет
@@ -56,7 +56,7 @@ export default function TopBar({ isLoggedIn = false }: TopBarProps) {
               ) : (
                 <Link
                   href="/login"
-                  className="shrink-0 inline-flex items-center justify-center h-[40px] px-4 text-small font-medium rounded-full bg-black text-white no-underline hover:bg-black-hover transition-colors duration-fast"
+                  className="inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-black px-4 text-small font-medium text-white no-underline transition-colors duration-fast hover:bg-black-hover"
                 >
                   Увійти
                 </Link>
@@ -69,7 +69,7 @@ export default function TopBar({ isLoggedIn = false }: TopBarProps) {
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="p-2 -ml-2 rounded hover:bg-gray-100 transition-colors"
+              className="-ml-2 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded hover:bg-gray-100 transition-colors"
               aria-label="Меню"
             >
               <Menu size={24} strokeWidth={1.5} />
@@ -83,13 +83,13 @@ export default function TopBar({ isLoggedIn = false }: TopBarProps) {
             </Link>
 
             {isLoggedIn ? (
-              <Link href="/app/overview" aria-label="Кабінет" className="p-2 -mr-2 rounded hover:bg-gray-100 transition-colors no-underline">
+              <Link href="/app/overview" aria-label="Кабінет" className="-mr-2 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded hover:bg-gray-100 transition-colors no-underline">
                 <User size={24} strokeWidth={1.5} />
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="shrink-0 inline-flex items-center justify-center h-[32px] px-3 text-small font-medium rounded-full bg-black text-white no-underline"
+                className="inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-black px-4 text-small font-medium text-white no-underline"
               >
                 Увійти
               </Link>
@@ -113,7 +113,7 @@ export default function TopBar({ isLoggedIn = false }: TopBarProps) {
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                className="p-2 -mr-2 rounded hover:bg-gray-100 transition-colors"
+                className="-mr-2 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded hover:bg-gray-100 transition-colors"
                 aria-label="Закрити"
               >
                 <X size={24} strokeWidth={1.5} />
