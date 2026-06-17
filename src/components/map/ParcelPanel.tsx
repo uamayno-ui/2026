@@ -108,7 +108,7 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
       })
 
       if (res.status === 401) {
-        // Не авторизований → redirect на login з поверненням на /map
+        // Не авторизований -> redirect на login з поверненням на /map
         router.push(`/login?next=/map`)
         return
       }
@@ -156,16 +156,16 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
         <span className="font-mono text-[18px] font-medium tracking-[-0.01em] truncate">
           {parcel.kadnum}
         </span>
-        <div className="flex gap-1 flex-shrink-0">
+        <div className="flex flex-shrink-0 items-center gap-1">
           <Link
             href={`/parcel/${parcel.kadnum}`}
-            className="w-[36px] h-[36px] flex items-center justify-center rounded hover:bg-gray-100 transition-colors no-underline text-black"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded text-black no-underline transition-colors hover:bg-gray-100"
             aria-label="Відкрити сторінку ділянки"
             title="Відкрити сторінку ділянки"
           >
             <ArrowRight size={18} strokeWidth={1.5} />
           </Link>
-          <button type="button" aria-label="Закрити" onClick={onClose} className="w-[36px] h-[36px] flex items-center justify-center rounded hover:bg-gray-100 transition-colors">
+          <button type="button" aria-label="Закрити" onClick={onClose} className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded transition-colors hover:bg-gray-100">
             <X size={20} strokeWidth={1.5} />
           </button>
         </div>
@@ -187,7 +187,7 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
           </div>
 
           <div className="flex items-center gap-1.5 mt-3 text-[12px] uppercase tracking-[0.03em] text-gray-500 font-medium">
-            <Check size={14} strokeWidth={2.5} className="text-success" />
+            <Check size={14} strokeWidth={1.5} className="text-success" />
             Дані з ДЗК · оновлено 01.05.2026
           </div>
         </section>
@@ -198,7 +198,7 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
             <h3 className="text-h3 font-semibold">Замовити документи</h3>
             {ordering && (
               <span className="inline-flex items-center gap-1.5 text-[13px] text-gray-500">
-                <Loader2 size={13} className="animate-spin" />
+                <Loader2 size={13} strokeWidth={1.5} className="animate-spin" />
                 Оформлення…
               </span>
             )}
@@ -215,7 +215,7 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
           </div>
           <Link
             href="/pricing"
-            className="flex items-center justify-between w-full mt-3 pt-3 border-t border-gray-100 text-[14px] text-gray-500 no-underline hover:text-black transition-colors"
+            className="inline-flex w-full shrink-0 items-center justify-between gap-3 whitespace-nowrap border-t border-gray-100 pt-3 mt-3 text-[14px] text-gray-500 no-underline transition-colors hover:text-black"
           >
             <span>Ще 5 послуг — НГО, план, власник, оцінка, геодезія</span>
             <ArrowRight size={16} strokeWidth={1.5} />
@@ -231,7 +231,7 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
               { icon: <Route size={18} strokeWidth={1.5} />,    label: 'Маршрут',     action: () => {} },
               { icon: <Share2 size={18} strokeWidth={1.5} />,   label: 'Поділитись',  action: handleCopyLink },
             ].map(({ icon, label, action }) => (
-              <button key={label} type="button" onClick={action} className="flex items-center gap-2 h-[40px] px-3 text-[14px] text-black rounded hover:bg-surface-soft transition-colors">
+              <button key={label} type="button" onClick={action} className="inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded px-3 text-[14px] text-black transition-colors hover:bg-surface-soft">
                 <span className="text-gray-500">{icon}</span>
                 {label}
               </button>
@@ -256,7 +256,7 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
               type="button"
               onClick={() => handleOrder('monitor')}
               disabled={isLoading}
-              className="inline-flex items-center justify-center h-[40px] px-4 rounded-full bg-green text-white text-small font-medium hover:bg-green-hover transition-colors disabled:opacity-50"
+              className="inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-green px-4 text-small font-medium text-white transition-colors hover:bg-green-hover disabled:opacity-50"
             >
               Підписатися на моніторинг
             </button>
