@@ -32,7 +32,7 @@ export default function AppHeader() {
           {/* Map shortcut */}
           <Link
             href="/map"
-            className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 text-small font-medium text-gray-500 no-underline transition-colors hover:bg-surface-soft hover:text-black"
+            className="inline-flex h-[40px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 text-small font-medium text-gray-500 no-underline transition-colors hover:bg-surface-soft hover:text-black"
           >
             <Map size={16} strokeWidth={1.5} />
             <span className="hidden md:inline">Мапа</span>
@@ -41,7 +41,7 @@ export default function AppHeader() {
           {/* Notifications */}
           <button
             type="button"
-            className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-surface-soft hover:text-black"
+            className="relative inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-surface-soft hover:text-black"
             aria-label="Сповіщення"
           >
             <Bell size={18} strokeWidth={1.5} />
@@ -55,7 +55,7 @@ export default function AppHeader() {
           </span>
 
           {/* Avatar */}
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-black">
+          <div className="flex h-[40px] w-[40px] flex-shrink-0 items-center justify-center rounded-full bg-black">
             <span className="text-white text-[12px] font-bold leading-none">
               {MOCK_USER.initials}
             </span>
@@ -65,7 +65,7 @@ export default function AppHeader() {
           <button
             type="button"
             onClick={() => router.push('/')}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-surface-soft hover:text-black"
+            className="inline-flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-surface-soft hover:text-black"
             aria-label="Вийти"
           >
             <LogOut size={16} strokeWidth={1.5} />
