@@ -142,7 +142,7 @@ export default function SearchInput({
   }
 
   // ── Styles ───────────────────────────────────────────────────────────
-  const inputHeight   = size === 'hero' ? 'h-16' : 'h-12'
+  const inputHeight   = size === 'hero' ? 'h-[64px]' : 'h-[48px]'
   const inputPx       = size === 'hero' ? 'pl-5 pr-2' : 'pl-4 pr-2'
   const inputFontSize = size === 'hero' ? 'text-body-l' : 'text-body'
 
@@ -197,7 +197,7 @@ export default function SearchInput({
           <button
             type="button"
             onMouseDown={(e) => { e.preventDefault(); handleClear() }}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors hover:bg-gray-100"
+            className="inline-flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded transition-colors hover:bg-gray-100"
             aria-label="Очистити"
           >
             <X size={16} strokeWidth={1.5} className="text-gray-400" />
@@ -207,7 +207,7 @@ export default function SearchInput({
         <button
           type="button"
           onClick={() => navigate(query)}
-          className="shrink-0 inline-flex items-center justify-center h-12 px-6 rounded-full bg-black text-white text-small font-medium hover:bg-black-hover active:bg-black-press active:scale-[0.98] transition-all duration-fast whitespace-nowrap"
+          className="shrink-0 inline-flex items-center justify-center h-[48px] px-6 rounded-full bg-black text-white text-small font-medium hover:bg-black-hover active:bg-black-press active:scale-[0.98] transition-all duration-fast whitespace-nowrap"
         >
           Знайти
         </button>
@@ -226,7 +226,7 @@ export default function SearchInput({
                 onMouseDown={(e) => { e.preventDefault(); handleSelect(s) }}
                 onMouseEnter={() => setActiveIdx(i)}
                 className={[
-                  'inline-flex min-h-12 w-full shrink-0 items-center gap-4 px-5 py-3 text-left transition-colors',
+                  'inline-flex min-h-[48px] w-full shrink-0 items-center gap-4 px-5 py-3 text-left transition-colors',
                   i === activeIdx ? 'bg-surface-soft' : 'hover:bg-surface-soft',
                 ].join(' ')}
               >
