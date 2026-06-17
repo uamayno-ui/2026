@@ -32,7 +32,7 @@ export default function AppHeader() {
           {/* Map shortcut */}
           <Link
             href="/map"
-            className="shrink-0 inline-flex items-center gap-1.5 h-[36px] px-3 rounded-full text-small font-medium text-gray-500 hover:bg-surface-soft hover:text-black transition-colors no-underline"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 text-small font-medium text-gray-500 no-underline transition-colors hover:bg-surface-soft hover:text-black"
           >
             <Map size={16} strokeWidth={1.5} />
             <span className="hidden md:inline">Мапа</span>
@@ -41,7 +41,7 @@ export default function AppHeader() {
           {/* Notifications */}
           <button
             type="button"
-            className="relative w-[36px] h-[36px] flex items-center justify-center rounded-full hover:bg-surface-soft transition-colors text-gray-500 hover:text-black"
+            className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-surface-soft hover:text-black"
             aria-label="Сповіщення"
           >
             <Bell size={18} strokeWidth={1.5} />
@@ -55,7 +55,7 @@ export default function AppHeader() {
           </span>
 
           {/* Avatar */}
-          <div className="w-[36px] h-[36px] rounded-full bg-black flex items-center justify-center flex-shrink-0">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-black">
             <span className="text-white text-[12px] font-bold leading-none">
               {MOCK_USER.initials}
             </span>
@@ -65,7 +65,7 @@ export default function AppHeader() {
           <button
             type="button"
             onClick={() => router.push('/')}
-            className="w-[36px] h-[36px] flex items-center justify-center rounded-full hover:bg-surface-soft transition-colors text-gray-400 hover:text-black"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-surface-soft hover:text-black"
             aria-label="Вийти"
           >
             <LogOut size={16} strokeWidth={1.5} />
