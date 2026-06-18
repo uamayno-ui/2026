@@ -76,7 +76,7 @@ export default function SearchBox({
             'caret-[#22C55E]',   // зелений мигаючий курсор при введенні
             'focus:outline-none',
             focused
-              ? 'border-black border-[1.5px] shadow-[0_0_0_3px_rgba(34,197,94,0.12)]'
+              ? 'border-black border-[1.5px] shadow-[0_0_0_4px_rgba(212,212,216,0.4)]'
               : 'border-gray-300 hover:border-gray-500',
           ].join(' ')}
         />
@@ -87,7 +87,7 @@ export default function SearchBox({
             className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-black transition-colors"
             aria-label="Очистити"
           >
-            <X size={13} strokeWidth={2} />
+            <X size={13} strokeWidth={1.5} />
           </button>
         )}
       </div>
@@ -138,13 +138,13 @@ export default function SearchBox({
           )}
           {hint && !error && (
             <div className="flex items-center gap-2.5 px-4 py-3 text-[13px] text-gray-500">
-              <Info size={15} strokeWidth={1.5} className="flex-shrink-0 text-blue-400" />
+              <Info size={15} strokeWidth={1.5} className="flex-shrink-0 text-info" />
               {hint}
             </div>
           )}
           {error && (
             <div className="flex items-center gap-2.5 px-4 py-3 text-[13px] text-gray-500">
-              <AlertCircle size={15} strokeWidth={1.5} className="flex-shrink-0 text-orange-400" />
+              <AlertCircle size={15} strokeWidth={1.5} className="flex-shrink-0 text-danger" />
               {error}
             </div>
           )}
