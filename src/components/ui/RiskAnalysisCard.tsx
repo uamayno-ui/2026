@@ -8,9 +8,9 @@ import type { AiRiskAnalysis, RiskFactor } from '@/lib/ai/risk-analysis'
 
 const RISK_CONFIG = {
   low:      { label: 'Низький ризик',      bg: 'bg-surface-green', text: 'text-success',   border: 'border-success/20',   Icon: ShieldCheck    },
-  medium:   { label: 'Середній ризик',     bg: 'bg-amber-50',      text: 'text-amber-700', border: 'border-amber-200',    Icon: AlertTriangle  },
-  high:     { label: 'Високий ризик',      bg: 'bg-red-50',        text: 'text-red-700',   border: 'border-red-200',      Icon: AlertOctagon   },
-  critical: { label: 'Критичний ризик',    bg: 'bg-red-100',       text: 'text-red-800',   border: 'border-red-300',      Icon: AlertOctagon   },
+  medium:   { label: 'Середній ризик',     bg: 'bg-warning/10',    text: 'text-warning',   border: 'border-warning/20',   Icon: AlertTriangle  },
+  high:     { label: 'Високий ризик',      bg: 'bg-danger/10',     text: 'text-danger',    border: 'border-danger/20',    Icon: AlertOctagon   },
+  critical: { label: 'Критичний ризик',    bg: 'bg-danger/10',     text: 'text-danger',    border: 'border-danger/20',    Icon: AlertOctagon   },
 } as const
 
 const CATEGORY_LABELS: Record<RiskFactor['category'], string> = {
@@ -24,7 +24,7 @@ const CATEGORY_LABELS: Record<RiskFactor['category'], string> = {
 // ── Sub-components ─────────────────────────────────────────────────────
 
 function ScoreBar({ score }: { score: number }) {
-  const color = score < 25 ? 'bg-success' : score < 50 ? 'bg-amber-400' : score < 75 ? 'bg-orange-500' : 'bg-red-600'
+  const color = score < 25 ? 'bg-success' : score < 50 ? 'bg-warning' : score < 75 ? 'bg-danger' : 'bg-danger'
   return (
     <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
       <div
@@ -54,14 +54,14 @@ function FactorCard({ factor }: { factor: RiskFactor }) {
         <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text} shrink-0`}>
           {factor.severity === 'low' ? 'низький' : factor.severity === 'medium' ? 'середній' : factor.severity === 'high' ? 'високий' : 'критичний'}
         </span>
-        {open ? <ChevronUp size={14} className="shrink-0 text-gray-400" /> : <ChevronDown size={14} className="shrink-0 text-gray-400" />}
+        {open ? <ChevronUp size={14} strokeWidth={1.5} className="shrink-0 text-gray-400" /> : <ChevronDown size={14} strokeWidth={1.5} className="shrink-0 text-gray-400" />}
       </button>
 
       {open && (
         <div className="px-4 pb-4 pt-0 space-y-2.5 bg-white border-t border-gray-100">
           <p className="text-[13px] text-gray-700 leading-relaxed">{factor.description}</p>
           <div className="flex gap-2 items-start">
-            <Info size={13} className="shrink-0 text-gray-400 mt-0.5" />
+            <Info size={13} strokeWidth={1.5} className="shrink-0 text-gray-400 mt-0.5" />
             <p className="text-[12px] text-gray-500 italic leading-relaxed">{factor.recommendation}</p>
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function RiskAnalysisCard({ orderId, analysis: initialAnalysis, c
   if (loading) {
     return (
       <div className={`border border-gray-200 rounded-xl p-6 flex items-center gap-3 ${className}`}>
-        <Loader2 size={18} className="animate-spin text-gray-400" />
+        <Loader2 size={18} strokeWidth={1.5} className="animate-spin text-gray-400" />
         <div>
           <p className="text-[14px] font-medium">AI аналізує ділянку…</p>
           <p className="text-[12px] text-gray-500">Зазвичай займає 15–30 секунд</p>

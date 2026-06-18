@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { User, Shield, Bell, Smartphone } from 'lucide-react'
+import { User, Shield, Bell, Smartphone, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Профіль' }
 
@@ -26,7 +26,7 @@ export default function ProfilePage() {
           <User size={16} strokeWidth={1.5} className="text-gray-500" />
           <h2 className="text-[15px] font-semibold">Особисті дані</h2>
           <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-green font-medium uppercase tracking-wide">
-            <Shield size={11} strokeWidth={2} />
+            <Shield size={11} strokeWidth={1.5} />
             Верифіковано
           </span>
         </div>
@@ -94,9 +94,10 @@ export default function ProfilePage() {
           </p>
           <button
             type="button"
-            className="shrink-0 inline-flex items-center h-[36px] px-4 rounded-full bg-black text-white text-small font-medium hover:bg-black-hover transition-colors"
+            className="shrink-0 inline-flex items-center gap-1.5 h-[36px] px-4 rounded-full bg-black text-white text-small font-medium hover:bg-black-hover transition-colors"
           >
-            Підключити →
+            Підключити
+            <ArrowRight size={13} strokeWidth={1.5} />
           </button>
         </div>
       </div>

@@ -85,10 +85,10 @@ export default function MonitoringPage() {
                 {/* Status icon */}
                 <div className={[
                   'w-[36px] h-[36px] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5',
-                  obj.status === 'changed' ? 'bg-amber-50' : 'bg-surface-green',
+                  obj.status === 'changed' ? 'bg-warning/10' : 'bg-surface-green',
                 ].join(' ')}>
                   {obj.status === 'changed'
-                    ? <AlertCircle size={16} strokeWidth={1.5} className="text-amber-500" />
+                    ? <AlertCircle size={16} strokeWidth={1.5} className="text-warning" />
                     : <CheckCircle2 size={16} strokeWidth={1.5} className="text-green" />
                   }
                 </div>
@@ -109,7 +109,7 @@ export default function MonitoringPage() {
               {/* Actions */}
               <div className="flex items-center gap-2 flex-shrink-0">
                 {obj.alerts > 0 && (
-                  <span className="inline-flex items-center h-6 px-2.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-semibold">
+                  <span className="inline-flex items-center h-6 px-2.5 rounded-full bg-warning/10 text-warning text-[11px] font-semibold">
                     {obj.alerts} зміна
                   </span>
                 )}
@@ -131,7 +131,7 @@ export default function MonitoringPage() {
               </div>
               <div>
                 <p className="text-gray-400 text-[11px] uppercase tracking-wide mb-0.5">Остання зміна</p>
-                <p className={['font-medium', obj.lastChanged ? 'text-amber-600' : 'text-gray-400'].join(' ')}>
+                <p className={['font-medium', obj.lastChanged ? 'text-warning' : 'text-gray-400'].join(' ')}>
                   {obj.lastChanged
                     ? new Date(obj.lastChanged).toLocaleDateString('uk-UA')
                     : 'Змін не виявлено'
@@ -146,13 +146,13 @@ export default function MonitoringPage() {
 
             {/* Changed alert */}
             {obj.status === 'changed' && (
-              <div className="mt-3 flex items-center justify-between bg-amber-50 rounded px-4 py-3 gap-4">
-                <p className="text-[13px] text-amber-800 font-medium">
+              <div className="mt-3 flex items-center justify-between bg-warning/10 rounded px-4 py-3 gap-4">
+                <p className="text-[13px] text-warning font-medium">
                   Зафіксовано зміну в реєстрі 20.05.2026. Замовте актуальний витяг.
                 </p>
                 <Link
                   href={`/parcel/${obj.kadnum}`}
-                  className="inline-flex items-center gap-1 h-[32px] px-3 rounded-full bg-amber-600 text-white text-[12px] font-medium no-underline hover:bg-amber-700 transition-colors whitespace-nowrap flex-shrink-0"
+                  className="inline-flex items-center gap-1 h-[32px] px-3 rounded-full bg-black text-white text-[12px] font-medium no-underline hover:bg-black-hover transition-colors whitespace-nowrap flex-shrink-0"
                 >
                   Переглянути
                   <ArrowRight size={13} strokeWidth={1.5} />

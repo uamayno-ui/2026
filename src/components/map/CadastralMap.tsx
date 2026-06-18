@@ -3,7 +3,7 @@
 import { useRef, useCallback, useMemo } from 'react'
 import Map, { Source, Layer } from 'react-map-gl/mapbox'
 import type { MapRef, MapMouseEvent, LayerProps } from 'react-map-gl/mapbox'
-import { ExternalLink } from 'lucide-react'
+import { ArrowRight, ExternalLink } from 'lucide-react'
 import type { Parcel, MapLayers } from '@/types/map'
 import { PARCELS, DECO_PARCELS, KYIV_CENTER, parcelsToGeoJSON, decoToGeoJSON } from '@/lib/mapData'
 
@@ -93,7 +93,8 @@ function NoToken() {
           rel="noopener noreferrer"
           className="shrink-0 inline-flex items-center gap-1.5 h-[36px] px-4 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
         >
-          Отримати токен →
+          Отримати токен
+          <ArrowRight size={13} strokeWidth={1.5} />
         </a>
       </div>
     </div>

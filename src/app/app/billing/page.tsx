@@ -89,7 +89,7 @@ export default function BillingPage() {
                 <ul className="flex flex-col gap-2 flex-1">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-1.5 text-[12px] leading-4">
-                      <Check size={12} strokeWidth={2.5} className="text-green flex-shrink-0 mt-0.5" />
+                      <Check size={12} strokeWidth={1.5} className="text-green flex-shrink-0 mt-0.5" />
                       {f}
                     </li>
                   ))}
@@ -164,7 +164,7 @@ export default function BillingPage() {
                 <td className="px-6 py-3.5 font-medium">{inv.amount} грн</td>
                 <td className="px-6 py-3.5">
                   <span className="inline-flex items-center gap-1 text-[13px] font-medium text-green">
-                    <Check size={12} strokeWidth={2.5} />
+                    <Check size={12} strokeWidth={1.5} />
                     {inv.status}
                   </span>
                 </td>
