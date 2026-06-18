@@ -104,7 +104,7 @@ const FAQ = [
   },
   {
     q: 'Як скасувати підписку?',
-    a: 'У будь-який момент через Кабінет → Підписка → Скасувати. Доступ залишається до кінця оплаченого місяця, кошти не повертаються.',
+    a: 'У будь-який момент через Кабінет / Підписка / Скасувати. Доступ залишається до кінця оплаченого місяця, кошти не повертаються.',
   },
   {
     q: 'Чи можна замовити витяг без підписки?',
@@ -175,7 +175,7 @@ export default function PricingPage() {
                       <li key={f} className="flex items-start gap-2.5 text-[14px] leading-5">
                         <Check
                           size={16}
-                          strokeWidth={2.5}
+                          strokeWidth={1.5}
                           className={['flex-shrink-0 mt-0.5', plan.highlight ? 'text-green' : 'text-black'].join(' ')}
                         />
                         {f}
