@@ -91,15 +91,15 @@ export default function HomePage() {
 
             {/* Quick chips */}
             <div className="mt-5 flex justify-center gap-3 flex-wrap">
-              <span className="inline-flex h-8 items-center px-4 rounded-full bg-surface-soft text-[13px] text-gray-500 cursor-default">
+              <span className="inline-flex h-[32px] items-center px-4 rounded-full bg-surface-soft text-[13px] text-gray-500 cursor-default">
                 Київ, вул. Хрещатик, 1
               </span>
-              <span className="inline-flex h-8 items-center px-4 rounded-full bg-surface-soft text-[13px] text-gray-500 font-mono cursor-default">
+              <span className="inline-flex h-[32px] items-center px-4 rounded-full bg-surface-soft text-[13px] text-gray-500 font-mono cursor-default">
                 6310136900:12:001:0025
               </span>
               <Link
                 href="/map"
-                className="inline-flex h-8 shrink-0 items-center justify-center gap-1 whitespace-nowrap px-2 text-[13px] text-black underline underline-offset-2 no-underline hover:underline"
+                className="inline-flex h-[32px] shrink-0 items-center justify-center gap-1 whitespace-nowrap px-2 text-[13px] text-black underline underline-offset-2 no-underline hover:underline"
               >
                 або відкрити мапу
                 <ArrowRight size={14} strokeWidth={1.5} />
@@ -210,7 +210,7 @@ export default function HomePage() {
               </div>
               <Link
                 href="/pricing"
-                className="shrink-0 inline-flex items-center justify-center h-12 px-6 rounded-full border border-[1.5px] border-black text-black font-medium text-body no-underline hover:bg-surface-soft transition-colors whitespace-nowrap self-start md:self-auto"
+                className="shrink-0 inline-flex items-center justify-center h-[48px] px-6 rounded-full border border-[1.5px] border-black text-black font-medium text-body no-underline hover:bg-surface-soft transition-colors whitespace-nowrap self-start md:self-auto"
               >
                 Дивитись усі тарифи
               </Link>
@@ -251,7 +251,7 @@ export default function HomePage() {
                   <Link
                     href="/pricing"
                     className={[
-                      'inline-flex h-12 w-full shrink-0 items-center justify-center whitespace-nowrap rounded-full font-medium text-body no-underline transition-colors',
+                      'inline-flex h-[48px] w-full shrink-0 items-center justify-center whitespace-nowrap rounded-full font-medium text-body no-underline transition-colors',
                       plan.highlight
                         ? 'bg-green text-white hover:bg-green-hover'
                         : 'border border-[1.5px] border-black hover:bg-surface-soft',
@@ -277,13 +277,13 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Link
                 href="/map"
-                className="shrink-0 inline-flex items-center justify-center h-14 px-8 rounded-full bg-green text-white font-medium text-body-l no-underline hover:bg-green-hover transition-colors"
+                className="shrink-0 inline-flex items-center justify-center h-[56px] px-8 rounded-full bg-green text-white font-medium text-body-l no-underline hover:bg-green-hover transition-colors"
               >
                 Відкрити мапу
               </Link>
               <Link
                 href="/login"
-                className="shrink-0 inline-flex items-center justify-center h-14 px-8 rounded-full border border-white text-white font-medium text-body-l no-underline hover:bg-white/10 transition-colors"
+                className="shrink-0 inline-flex items-center justify-center h-[56px] px-8 rounded-full border border-white text-white font-medium text-body-l no-underline hover:bg-white/10 transition-colors"
               >
                 Увійти через ЕЦП
               </Link>
