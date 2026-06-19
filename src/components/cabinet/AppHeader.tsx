@@ -6,9 +6,9 @@ import { Bell, LogOut, Map } from 'lucide-react'
 
 // Sprint 3: replace with real session
 const MOCK_USER = {
-  name: 'Олександр Нечепуренко',
-  initials: 'ОН',
-  plan: 'Personal',
+  name: 'Демо-користувач',
+  initials: 'ДК',
+  plan: 'Демо-кабінет',
 }
 
 export default function AppHeader() {
