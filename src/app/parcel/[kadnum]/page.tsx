@@ -22,9 +22,9 @@ function getMockParcel(kadnum: string) {
     purposeCode: '02.01',
     category: 'Землі житлової та громадської забудови',
     ownership: 'Приватна',
-    region: 'Київська область',
-    district: 'Броварський район',
-    settlement: 'Бровари',
+    region: 'Демо-регіон',
+    district: 'Демо-район',
+    settlement: 'Демо-громада',
     // address hidden per Закон № 4292-IX (sensitive during martial law)
     addressHidden: false,
     registeredAt: '2018-04-12',
@@ -40,7 +40,7 @@ export async function generateMetadata(
   const { kadnum } = await params
   const num = formatKadnum(kadnum)
   const parcel = getMockParcel(num)
-  const desc = `Земельна ділянка ${num} — ${parcel.area}, ${parcel.category}, ${parcel.settlement}. Замовте витяг з ДЗК, ДРРП та AI-аналіз ризиків за 60 секунд.`
+  const desc = `Демо-сторінка земельної ділянки ${num}. Приклад оформлення. Реальні витяги потребують підключення ДЗК/ДРРП API та договорів.`
   return {
     title: `Ділянка ${num} — ${parcel.settlement}`,
     description: desc,
@@ -171,6 +171,9 @@ export default async function ParcelPage(
                   <MapPin size={14} strokeWidth={1.5} />
                   {parcel.settlement}, {parcel.district}
                 </div>
+                <div className="inline-flex items-center h-[28px] px-3 rounded-full bg-surface-soft text-tiny uppercase text-gray-500 mb-4">
+                  Демо-сторінка
+                </div>
                 <h1 className="text-[28px] md:text-h1 font-bold tracking-[-0.02em] mb-2">
                   Земельна ділянка
                 </h1>
@@ -193,7 +196,7 @@ export default async function ParcelPage(
                       ? <AlertCircle size={14} strokeWidth={1.5} className="text-red-500" />
                       : <ShieldCheck size={14} strokeWidth={1.5} className="text-green" />
                     }
-                    {parcel.hasRestrictions ? 'Є обтяження' : 'Обтяжень не виявлено'}
+                    {parcel.hasRestrictions ? 'Демо: є обтяження' : 'Демо: обтяжень не показано'}
                   </div>
                 </div>
               </div>
@@ -260,7 +263,7 @@ export default async function ParcelPage(
                       className="shrink-0 inline-flex items-center gap-1.5 h-[36px] px-4 rounded-full border border-black text-small font-medium no-underline hover:bg-surface-soft transition-colors whitespace-nowrap"
                     >
                       <FileText size={14} strokeWidth={1.5} />
-                      Офіційний НГО
+                      НГО після підключення
                     </Link>
                   </div>
                 </div>
@@ -326,7 +329,7 @@ export default async function ParcelPage(
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden sticky top-20">
                   <div className="px-6 py-4 border-b border-gray-100">
                     <h2 className="text-[17px] font-semibold">Замовити документи</h2>
-                    <p className="text-[13px] text-gray-500 mt-0.5">Офіційні витяги за 60 секунд</p>
+                    <p className="text-[13px] text-gray-500 mt-0.5">Приклад оформлення. Реальні витяги потребують підключення API та договорів.</p>
                   </div>
 
                   <div className="divide-y divide-gray-100">
@@ -370,8 +373,8 @@ export default async function ParcelPage(
 
                   <div className="px-6 py-4 bg-surface-soft border-t border-gray-100">
                     <p className="text-[12px] text-gray-500 leading-5">
-                      Документи формуються напряму з API Держгеокадастру та НАІС.
-                      Мають QR-код верифікації, приймаються нотаріусами та банками.
+                      Приклад оформлення. Реальні витяги потребують підключення ДЗК/ДРРП API та договорів.
+                      У демо-режимі документи не формуються.
                     </p>
                   </div>
                 </div>
