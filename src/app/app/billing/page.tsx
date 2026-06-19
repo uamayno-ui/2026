@@ -23,35 +23,38 @@ const PLANS = [
   },
 ]
 
-const CURRENT_PLAN = 'Personal'
-const PLAN_EXPIRES = '2026-06-24'
+const CURRENT_PLAN = 'Демо'
+const PLAN_EXPIRES = 'Не підключено'
 
 // Mock invoice history
 const INVOICES = [
-  { id: 'INV-2026-05', date: '2026-05-01', amount: 299, status: 'Оплачено', plan: 'Personal' },
-  { id: 'INV-2026-04', date: '2026-04-01', amount: 299, status: 'Оплачено', plan: 'Personal' },
-  { id: 'INV-2026-03', date: '2026-03-01', amount: 299, status: 'Оплачено', plan: 'Personal' },
+  { id: 'DEMO-2026-05', date: '2026-05-01', amount: 299, status: 'Демо', plan: 'Personal' },
+  { id: 'DEMO-2026-04', date: '2026-04-01', amount: 299, status: 'Демо', plan: 'Personal' },
+  { id: 'DEMO-2026-03', date: '2026-03-01', amount: 299, status: 'Демо', plan: 'Personal' },
 ]
 
 export default function BillingPage() {
   return (
     <div className="flex flex-col gap-6">
 
-      <h1 className="text-[22px] md:text-h2 font-bold tracking-[-0.02em]">Підписка та оплата</h1>
+      <div>
+        <h1 className="text-[22px] md:text-h2 font-bold tracking-[-0.02em]">Демо-білінг</h1>
+        <p className="text-[13px] text-gray-500 mt-1">Оплата ще не підключена в цьому середовищі.</p>
+      </div>
 
       {/* Current plan */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold">Поточний тариф</h2>
+          <h2 className="text-[15px] font-semibold">Демо-тариф</h2>
           <span className="inline-flex items-center h-6 px-3 rounded-full bg-black text-white text-[11px] font-semibold uppercase tracking-wide">
             {CURRENT_PLAN}
           </span>
         </div>
         <div className="px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <p className="text-[28px] font-bold tracking-[-0.02em] mb-1">299 <span className="text-[16px] font-normal text-gray-500">грн/міс</span></p>
+            <p className="text-[28px] font-bold tracking-[-0.02em] mb-1">Демо <span className="text-[16px] font-normal text-gray-500">без списань</span></p>
             <p className="text-[13px] text-gray-500">
-              Наступне списання: <span className="text-black font-medium">{new Date(PLAN_EXPIRES).toLocaleDateString('uk-UA')}</span>
+              Наступне списання: <span className="text-black font-medium">{PLAN_EXPIRES}</span>
             </p>
           </div>
           <div className="flex gap-2">
@@ -121,8 +124,8 @@ export default function BillingPage() {
               <span className="text-[10px] font-bold text-gray-600">VISA</span>
             </div>
             <div>
-              <p className="text-[14px] font-medium">•••• •••• •••• 4242</p>
-              <p className="text-[12px] text-gray-400">Expires 08/27</p>
+              <p className="text-[14px] font-medium">Демо-картка не збережена</p>
+              <p className="text-[12px] text-gray-400">Платіжний метод не підключено</p>
             </div>
           </div>
           <button
@@ -134,8 +137,7 @@ export default function BillingPage() {
         </div>
         <div className="px-6 pb-5">
           <p className="text-[12px] text-gray-400">
-            Оплата через LiqPay. Картка зберігається у зашифрованому вигляді на серверах LiqPay.
-            Mayno не зберігає реквізити картки.
+            Оплата ще не підключена в цьому середовищі. Реальний спосіб оплати зʼявиться після підключення LiqPay.
           </p>
         </div>
       </div>
@@ -143,7 +145,7 @@ export default function BillingPage() {
       {/* Invoice history */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-[15px] font-semibold">Історія платежів</h2>
+          <h2 className="text-[15px] font-semibold">Демо-історія платежів</h2>
         </div>
         <table className="w-full text-[14px]">
           <thead>
