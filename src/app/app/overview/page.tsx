@@ -8,57 +8,57 @@ import {
 export const metadata: Metadata = { title: 'Огляд' }
 
 // ── mock data (Sprint 3: replace with real DB queries) ────────────────
-const MOCK_USER = { name: 'Олександр' }
+const MOCK_USER = { name: 'Демо-користувач' }
 
 const STATS = [
-  { label: 'Замовлень цього місяця', value: '7',  sub: '+3 від минулого',  color: 'text-black'  },
-  { label: 'Очікують результату',    value: '2',  sub: 'Готово за ~60 сек', color: 'text-black'  },
-  { label: 'Об\'єктів на моніторингу', value: '3', sub: 'з 3 доступних',    color: 'text-black'  },
-  { label: 'Витрачено цього місяця',  value: '1 900 грн', sub: 'з необмежених', color: 'text-black' },
+  { label: 'Демо-замовлень', value: '7',  sub: 'Приклад статистики',  color: 'text-black'  },
+  { label: 'Прикладів в обробці', value: '2',  sub: 'Не реальні замовлення', color: 'text-black'  },
+  { label: 'Демо-моніторингів', value: '3', sub: 'Приклад вигляду кабінету', color: 'text-black'  },
+  { label: 'Демо-витрати', value: '1 900 грн', sub: 'Не платіжні дані', color: 'text-black' },
 ]
 
 const RECENT_ORDERS = [
   {
-    id: 'ORD-1047',
+    id: 'DEMO-1047',
     type: 'Витяг з ДРРП',
     icon: Clipboard,
-    kadnum: '3222486200:05:002:0054',
+    kadnum: '0000000000:00:000:0001',
     date: '2026-05-23',
     price: '300 грн',
     status: 'done',
   },
   {
-    id: 'ORD-1046',
+    id: 'DEMO-1046',
     type: 'Витяг з ДЗК',
     icon: FileText,
-    kadnum: '3222486200:05:002:0031',
+    kadnum: '0000000000:00:000:0002',
     date: '2026-05-23',
     price: '100 грн',
     status: 'done',
   },
   {
-    id: 'ORD-1045',
+    id: 'DEMO-1045',
     type: 'Повний звіт',
     icon: ShieldCheck,
-    kadnum: '8000000000:90:004:0014',
+    kadnum: '0000000000:00:000:0003',
     date: '2026-05-22',
     price: '400 грн',
     status: 'processing',
   },
   {
-    id: 'ORD-1044',
+    id: 'DEMO-1044',
     type: 'НГО',
     icon: BarChart2,
-    kadnum: '3222486200:05:002:0012',
+    kadnum: '0000000000:00:000:0004',
     date: '2026-05-20',
     price: '100 грн',
     status: 'done',
   },
   {
-    id: 'ORD-1043',
+    id: 'DEMO-1043',
     type: 'Кадастровий план',
     icon: Map,
-    kadnum: '3222486200:05:002:0008',
+    kadnum: '0000000000:00:000:0005',
     date: '2026-05-19',
     price: '100 грн',
     status: 'done',
@@ -90,8 +90,11 @@ export default function OverviewPage() {
       <div>
         <p className="text-small text-gray-500 mb-1">{today}</p>
         <h1 className="text-[26px] md:text-h2 font-bold tracking-[-0.02em]">
-          Доброго дня, {MOCK_USER.name}
+          Демо-кабінет
         </h1>
+        <p className="text-small text-gray-500 mt-1">
+          Приклад вигляду кабінету. Реальні дані зʼявляться після авторизації та підключення API.
+        </p>
       </div>
 
       {/* ── STATS GRID ── */}
@@ -108,7 +111,10 @@ export default function OverviewPage() {
       {/* ── QUICK ORDER ── */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-[17px] font-semibold">Швидке замовлення</h2>
+          <div>
+            <h2 className="text-[17px] font-semibold">Швидке замовлення</h2>
+            <p className="text-[12px] text-gray-500 mt-0.5">Демо-дані</p>
+          </div>
           <Link
             href="/map"
             className="inline-flex items-center gap-1 text-small text-gray-500 hover:text-black transition-colors no-underline"
@@ -150,7 +156,10 @@ export default function OverviewPage() {
       {/* ── RECENT ORDERS ── */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-[17px] font-semibold">Останні замовлення</h2>
+          <div>
+            <h2 className="text-[17px] font-semibold">Демо-замовлення</h2>
+            <p className="text-[12px] text-gray-500 mt-0.5">Це приклади, не реальні документи.</p>
+          </div>
           <Link
             href="/app/orders"
             className="inline-flex items-center gap-1 text-small text-gray-500 hover:text-black transition-colors no-underline"
