@@ -6,9 +6,9 @@ import SearchInput from '@/components/map/SearchInput'
 
 // ---------- Trust strip ----------
 const TRUST_ITEMS = [
-  { icon: Check,        text: '5 000+ перевірок' },
-  { icon: ShieldCheck,  text: 'Вхід через Bank ID' },
-  { icon: FileText,     text: 'Дані з офіційних реєстрів' },
+  { icon: Check,        text: 'Демо-версія сервісу' },
+  { icon: ShieldCheck,  text: 'Bank ID після підключення' },
+  { icon: FileText,     text: 'Підключення до реєстрів у процесі' },
   { icon: Building2,    text: 'ТОВ ФАВОР АРХІТЕКТ' },
 ]
 
@@ -24,13 +24,13 @@ const HOW_STEPS = [
     num: '02',
     icon: ShieldCheck,
     title: 'Увійдіть через ЕЦП',
-    desc: 'Bank ID НБУ, Дія.Підпис, Файловий або Апаратний ключ. Безпечно через офіційний канал.',
+    desc: 'Bank ID НБУ та інші способи входу будуть доступні після підключення відповідних інтеграцій.',
   },
   {
     num: '03',
     icon: FileText,
     title: 'Отримайте PDF',
-    desc: 'Витяг приходить на email і у ваш кабінет. Готовий до подачі нотаріусу чи в суд.',
+    desc: 'У демо показано майбутній вигляд PDF і кабінету після підключення реєстрів.',
   },
 ]
 
@@ -83,7 +83,7 @@ export default function HomePage() {
               Перевірте нерухомість<br />в Україні
             </h1>
             <p className="text-body md:text-h3 md:font-normal text-gray-500 mb-8 md:mb-12 max-w-[640px] mx-auto">
-              За 60 секунд: ДЗК, ДРРП, аналіз ризиків. Через ЕЦП.
+              Демо-версія: пошук, мапа і приклад замовлення. Реєстри підключаються окремо.
             </p>
 
             {/* Search */}
@@ -92,10 +92,10 @@ export default function HomePage() {
             {/* Quick chips */}
             <div className="mt-5 flex justify-center gap-3 flex-wrap">
               <span className="inline-flex h-[32px] items-center px-4 rounded-full bg-surface-soft text-[13px] text-gray-500 cursor-default">
-                Київ, вул. Хрещатик, 1
+                Демо-адреса
               </span>
               <span className="inline-flex h-[32px] items-center px-4 rounded-full bg-surface-soft text-[13px] text-gray-500 font-mono cursor-default">
-                6310136900:12:001:0025
+                0000000000:00:000:0001
               </span>
               <Link
                 href="/map"
@@ -128,7 +128,7 @@ export default function HomePage() {
                 Як це працює
               </h2>
               <p className="text-[15px] md:text-body-l text-gray-500">
-                Три кроки до офіційного витягу. Без реєстрації, без черг.
+                Три кроки майбутнього флоу. У демо показано приклад інтерфейсу.
               </p>
             </div>
 
@@ -181,7 +181,7 @@ export default function HomePage() {
                   <span className="text-tiny uppercase text-gray-500">Витяг ДЗК</span>
                 </div>
                 <div className="text-tiny uppercase text-gray-500 mb-1.5">Кадастровий номер</div>
-                <div className="font-mono text-[18px] font-medium mb-5">2310100000:05:001:0091</div>
+                <div className="font-mono text-[18px] font-medium mb-5">0000000000:00:000:0001</div>
                 <div className="grid grid-cols-2 gap-4 mb-5">
                   <div>
                     <div className="text-tiny uppercase text-gray-500 mb-1">Площа</div>
