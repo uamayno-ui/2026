@@ -78,7 +78,7 @@ function MapSearchBadge({ status }: { status: MapSearchStatus }) {
             {status === 'address-error' && 'Не вдалося виконати адресний пошук. Спробуйте ще раз.'}
             {status === 'parcel-loading' && 'Шукаємо ділянку...'}
             {status === 'parcel-found' && 'Кадастровий номер розпізнано'}
-            {status === 'parcel-not-found' && 'Не знайшли ділянку на мапі. Ви можете замовити перевірку за кадастровим номером.'}
+            {status === 'parcel-not-found' && 'Не знайшли ділянку на мапі. Перевірте формат кадастрового номера або уточніть дані.'}
             {status === 'parcel-invalid' && KADNUM_FORMAT_HINT}
             {status === 'parcel-error' && 'Не вдалося виконати пошук ділянки. Спробуйте ще раз.'}
           </p>
