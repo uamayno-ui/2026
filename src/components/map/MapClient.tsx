@@ -407,7 +407,10 @@ export default function MapClient() {
                 }
               }}
               placeholder="Адреса або кадастровий №"
-              className="h-[40px] flex-1 rounded border border-gray-300 pl-4 pr-3 text-small focus:border-black focus:outline-none"
+              className={[
+                'h-[40px] flex-1 rounded border border-gray-300 pl-4 pr-3 focus:border-black focus:outline-none',
+                KADNUM_RE.test(search.query.trim()) ? 'font-mono text-[13px] tracking-normal' : 'font-sans text-small',
+              ].join(' ')}
             />
             <button
               type="button"
