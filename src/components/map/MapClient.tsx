@@ -28,8 +28,20 @@ const DEFAULT_LAYERS: MapLayers = {
 }
 
 const KADNUM_RE = /^\d{10}:\d{2}:\d{3}:\d{4}$/
+const CADASTRAL_INPUT_RE = /^[\d:\s]+$/
+const KADNUM_FORMAT_HINT = 'Введіть кадастровий номер у форматі XXXXXXXXXX:XX:XXX:XXXX'
 
-type AddressSearchStatus = 'idle' | 'loading' | 'found' | 'not-found' | 'error'
+type MapSearchStatus =
+  | 'idle'
+  | 'address-loading'
+  | 'address-found'
+  | 'address-not-found'
+  | 'address-error'
+  | 'parcel-loading'
+  | 'parcel-found'
+  | 'parcel-not-found'
+  | 'parcel-invalid'
+  | 'parcel-error'
 
 interface AddressMarker {
   lat: number
@@ -37,11 +49,16 @@ interface AddressMarker {
   label: string
 }
 
-function AddressSearchBadge({ status }: { status: AddressSearchStatus }) {
+function isCadastralLike(value: string): boolean {
+  const query = value.trim()
+  return CADASTRAL_INPUT_RE.test(query) && query.replace(/\D/g, '').length >= 4
+}
+
+function MapSearchBadge({ status }: { status: MapSearchStatus }) {
   if (status === 'idle') return null
 
-  const isFound = status === 'found'
-  const isLoading = status === 'loading'
+  const isFound = status === 'address-found' || status === 'parcel-found'
+  const isLoading = status === 'address-loading' || status === 'parcel-loading'
 
   return (
     <div className="absolute left-4 right-4 top-[72px] z-[8] md:left-1/2 md:right-auto md:top-6 md:w-[360px] md:-translate-x-1/2">
@@ -55,14 +72,24 @@ function AddressSearchBadge({ status }: { status: AddressSearchStatus }) {
         />
         <div>
           <p className="text-[13px] font-semibold leading-5 text-black">
-            {isLoading && 'Шукаємо адресу...'}
-            {isFound && 'Знайдено адресу'}
-            {status === 'not-found' && 'Не знайшли адресу. Спробуйте додати місто або область.'}
-            {status === 'error' && 'Не вдалося виконати адресний пошук. Спробуйте ще раз.'}
+            {status === 'address-loading' && 'Шукаємо адресу...'}
+            {status === 'address-found' && 'Знайдено адресу'}
+            {status === 'address-not-found' && 'Не знайшли адресу. Спробуйте додати місто або область.'}
+            {status === 'address-error' && 'Не вдалося виконати адресний пошук. Спробуйте ще раз.'}
+            {status === 'parcel-loading' && 'Шукаємо ділянку...'}
+            {status === 'parcel-found' && 'Кадастровий номер розпізнано'}
+            {status === 'parcel-not-found' && 'Не знайшли ділянку на мапі. Ви можете замовити перевірку за кадастровим номером.'}
+            {status === 'parcel-invalid' && KADNUM_FORMAT_HINT}
+            {status === 'parcel-error' && 'Не вдалося виконати пошук ділянки. Спробуйте ще раз.'}
           </p>
-          {isFound && (
+          {status === 'address-found' && (
             <p className="mt-0.5 text-[12px] leading-4 text-gray-500">
               Адресний пошук. Це не витяг з ДЗК.
+            </p>
+          )}
+          {status === 'parcel-found' && (
+            <p className="mt-0.5 text-[12px] leading-4 text-gray-500">
+              Це не витяг з ДЗК.
             </p>
           )}
         </div>
@@ -117,7 +144,7 @@ export default function MapClient() {
   const [layers, setLayers]           = useState<MapLayers>(DEFAULT_LAYERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [addressMarker, setAddressMarker] = useState<AddressMarker | null>(null)
-  const [addressStatus, setAddressStatus] = useState<AddressSearchStatus>('idle')
+  const [searchStatus, setSearchStatus] = useState<MapSearchStatus>('idle')
   // Ідентифікація кліком — стан завантаження
   const [identifying, setIdentifying] = useState(false)
 
@@ -141,15 +168,26 @@ export default function MapClient() {
 
   const runAddressSearch = useCallback(async (rawQuery: string) => {
     const query = rawQuery.trim()
-    if (!query || KADNUM_RE.test(query)) {
+    if (!query) {
       setAddressMarker(null)
-      setAddressStatus('idle')
+      setSearchStatus('idle')
+      return
+    }
+    if (KADNUM_RE.test(query)) {
+      setAddressMarker(null)
+      setSearchStatus('parcel-loading')
+      return
+    }
+    if (isCadastralLike(query)) {
+      setSelected(null)
+      setAddressMarker(null)
+      setSearchStatus('parcel-invalid')
       return
     }
 
     setSelected(null)
     setAddressMarker(null)
-    setAddressStatus('loading')
+    setSearchStatus('address-loading')
 
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
@@ -165,7 +203,7 @@ export default function MapClient() {
       const first = results.find((item) => Number.isFinite(item.lat) && Number.isFinite(item.lng))
 
       if (!first) {
-        setAddressStatus('not-found')
+        setSearchStatus('address-not-found')
         return
       }
 
@@ -174,10 +212,10 @@ export default function MapClient() {
         lng: first.lng,
         label: first.short ?? query,
       })
-      setAddressStatus('found')
+      setSearchStatus('address-found')
       flyTo(first.lat, first.lng, 16)
     } catch {
-      setAddressStatus('error')
+      setSearchStatus('address-error')
     }
   }, [flyTo])
 
@@ -190,23 +228,27 @@ export default function MapClient() {
         lng: suggestion.lng,
         label: suggestion.label,
       })
-      setAddressStatus('found')
+      setSearchStatus('address-found')
       return
     }
     setAddressMarker(null)
-    setAddressStatus('idle')
+    setSearchStatus('parcel-found')
   }, [selectSearchSuggestion])
 
   const handleSearchClear = useCallback(() => {
     clearSearchResults()
     setAddressMarker(null)
-    setAddressStatus('idle')
+    setSearchStatus('idle')
   }, [clearSearchResults])
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value)
     setAddressMarker(null)
-    setAddressStatus('idle')
+    if (KADNUM_RE.test(value.trim())) {
+      setSearchStatus('parcel-loading')
+      return
+    }
+    setSearchStatus(isCadastralLike(value) ? 'parcel-invalid' : 'idle')
   }, [setSearchQuery])
 
   const mapSearch = {
@@ -221,10 +263,54 @@ export default function MapClient() {
     if (!initialQuery) return
     const timer = setTimeout(() => {
       setSearchQuery(initialQuery)
-      void runAddressSearch(initialQuery)
+      const query = initialQuery.trim()
+      if (KADNUM_RE.test(query)) {
+        setSelected(null)
+        setAddressMarker(null)
+        setSearchStatus('parcel-loading')
+        return
+      }
+      if (isCadastralLike(query)) {
+        setSelected(null)
+        setAddressMarker(null)
+        setSearchStatus('parcel-invalid')
+        return
+      }
+      void runAddressSearch(query)
     }, 0)
     return () => clearTimeout(timer)
   }, [initialQuery, runAddressSearch, setSearchQuery])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const query = search.query.trim()
+      if (!query) return
+
+      if (KADNUM_RE.test(query)) {
+        setAddressMarker(null)
+        if (search.searching) {
+          setSearchStatus('parcel-loading')
+          return
+        }
+        if (search.error) {
+          setSelected(null)
+          setSearchStatus('parcel-not-found')
+          return
+        }
+        if (search.suggestions.some((suggestion) => suggestion.type === 'parcel')) {
+          setSearchStatus('parcel-found')
+        }
+        return
+      }
+
+      if (isCadastralLike(query)) {
+        setSelected(null)
+        setAddressMarker(null)
+        setSearchStatus('parcel-invalid')
+      }
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [search.error, search.query, search.searching, search.suggestions])
 
   const toggleLayer = useCallback((key: LayerKey) => {
     setLayers((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -286,7 +372,7 @@ export default function MapClient() {
             mapRef={mapRef}
           />
 
-          <AddressSearchBadge status={addressStatus} />
+          <MapSearchBadge status={searchStatus} />
 
           {/* Identify loading indicator */}
           {identifying && (
@@ -297,7 +383,7 @@ export default function MapClient() {
           )}
 
           {/* Hint badge */}
-          {!selected && addressStatus === 'idle' && (
+          {!selected && searchStatus === 'idle' && (
             <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 bg-white rounded px-4 py-2.5 shadow text-[13px] z-[5]">
               <span className="w-2 h-2 rounded-full bg-green flex-shrink-0" />
               Клацніть будь-яку ділянку або введіть кадастровий номер

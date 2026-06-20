@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Hash, X, Loader } from 'lucide-react'
+import { Search, MapPin, Hash, X, Loader, Info } from 'lucide-react'
 
 // Регекс для кадастрового номера: XXXXXXXXXX:XX:XXX:XXXX
 const KADNUM_RE = /^\d{10}:\d{2}:\d{3}:\d{4}$/
+const CADASTRAL_INPUT_RE = /^[\d:\s]+$/
+const KADNUM_FORMAT_HINT = 'Введіть кадастровий номер у форматі XXXXXXXXXX:XX:XXX:XXXX'
 
 interface Suggestion {
   id:           number | string
@@ -31,6 +33,7 @@ export default function SearchInput({
   const [open,        setOpen]        = useState(false)
   const [loading,     setLoading]     = useState(false)
   const [activeIdx,   setActiveIdx]   = useState(-1)
+  const [hint,        setHint]        = useState<string | null>(null)
 
   const router     = useRouter()
   const inputRef   = useRef<HTMLInputElement>(null)
@@ -74,15 +77,23 @@ export default function SearchInput({
   // ── React to query changes ──────────────────────────────────────────
   useEffect(() => {
     const q = query.trim()
-    if (!q) { setSuggestions([]); setOpen(false); return }
+    if (!q) { setSuggestions([]); setHint(null); setOpen(false); return }
 
     setActiveIdx(-1)
+    setHint(null)
 
     // Кадастровий номер — одразу переходимо, не потрібен пошук
     if (KADNUM_RE.test(q)) {
       setSuggestions([{
         id: q, label: q, displayLabel: q, sub: 'Кадастровий номер', lat: 0, lng: 0, isKadnum: true,
       }])
+      setOpen(true)
+      return
+    }
+
+    if (CADASTRAL_INPUT_RE.test(q) && q.replace(/\D/g, '').length >= 4) {
+      setSuggestions([])
+      setHint(KADNUM_FORMAT_HINT)
       setOpen(true)
       return
     }
@@ -98,6 +109,12 @@ export default function SearchInput({
   const navigate = useCallback((q: string) => {
     const val = q.trim() || query.trim()
     if (!val) return
+    if (!KADNUM_RE.test(val) && CADASTRAL_INPUT_RE.test(val) && val.replace(/\D/g, '').length >= 4) {
+      setSuggestions([])
+      setHint(KADNUM_FORMAT_HINT)
+      setOpen(true)
+      return
+    }
     setOpen(false)
     router.push(`/map?query=${encodeURIComponent(val)}`)
   }, [query, router])
@@ -134,6 +151,7 @@ export default function SearchInput({
   const handleClear = () => {
     setQuery('')
     setSuggestions([])
+    setHint(null)
     setOpen(false)
     inputRef.current?.focus()
   }
@@ -211,7 +229,7 @@ export default function SearchInput({
       </div>
 
       {/* Autocomplete dropdown */}
-      {open && suggestions.length > 0 && (
+      {open && (suggestions.length > 0 || hint) && (
         <ul
           role="listbox"
           className="absolute left-0 right-0 top-full bg-white border-[1.5px] border-t-0 border-black rounded-b shadow-lg py-2 z-10"
@@ -243,6 +261,12 @@ export default function SearchInput({
               </button>
             </li>
           ))}
+          {hint && suggestions.length === 0 && (
+            <li className="flex min-h-[48px] items-start gap-3 px-5 py-3 text-left text-[13px] text-gray-500">
+              <Info size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-info" />
+              <span>{hint}</span>
+            </li>
+          )}
         </ul>
       )}
     </div>
