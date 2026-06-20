@@ -57,7 +57,7 @@ export default function SearchBox({
       {/* Input */}
       <div className="relative">
         <span className={[
-          'absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-[1] transition-colors duration-150',
+          'absolute left-[14px] top-1/2 -translate-y-1/2 pointer-events-none z-[1] transition-colors duration-150',
           focused ? 'text-[#22C55E]' : 'text-gray-400',
         ].join(' ')}>
           {searching
@@ -75,10 +75,10 @@ export default function SearchBox({
           autoComplete="off"
           spellCheck={false}
           className={[
-            'w-full h-11 pl-10 pr-9 bg-white border rounded transition-all duration-150',
+            'w-full h-[44px] pl-[40px] pr-[36px] bg-white border rounded transition-all duration-150',
             'caret-[#22C55E]',   // зелений мигаючий курсор при введенні
             'focus:outline-none',
-            isKadnumValue ? 'font-mono text-[13px] tracking-normal' : 'font-sans text-small',
+            isKadnumValue ? 'font-mono text-[12px] tracking-normal' : 'font-sans text-small',
             focused
               ? 'border-black border-[1.5px] shadow-[0_0_0_4px_rgba(212,212,216,0.4)]'
               : 'border-gray-300 hover:border-gray-500',
@@ -88,7 +88,7 @@ export default function SearchBox({
           <button
             type="button"
             onMouseDown={(e) => { e.preventDefault(); onChange(''); onClear() }}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-black transition-colors"
+            className="absolute right-[10px] top-1/2 flex h-[20px] w-[20px] -translate-y-1/2 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-black"
             aria-label="Очистити"
           >
             <X size={13} strokeWidth={1.5} />
