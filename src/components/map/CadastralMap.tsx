@@ -1,9 +1,9 @@
 'use client'
 
 import { useRef, useCallback, useMemo } from 'react'
-import Map, { Source, Layer } from 'react-map-gl/mapbox'
+import Map, { Source, Layer, Marker } from 'react-map-gl/mapbox'
 import type { MapRef, MapMouseEvent, LayerProps } from 'react-map-gl/mapbox'
-import { ArrowRight, ExternalLink } from 'lucide-react'
+import { ArrowRight, ExternalLink, MapPin } from 'lucide-react'
 import type { Parcel, MapLayers } from '@/types/map'
 import { PARCELS, DECO_PARCELS, KYIV_CENTER, parcelsToGeoJSON, decoToGeoJSON } from '@/lib/mapData'
 
@@ -11,6 +11,7 @@ const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
 export interface CadastralMapProps {
   highlightParcel?: Parcel | null   // підсвічена ділянка (з WFS або кліку)
+  addressMarker?:   { lat: number; lng: number; label: string } | null
   onSelect:         (p: Parcel) => void
   onMapClick?:      (lat: number, lng: number) => void
   layers:           MapLayers
@@ -109,6 +110,7 @@ const EMPTY_FC = { type: 'FeatureCollection' as const, features: [] }
 
 export default function CadastralMap({
   highlightParcel,
+  addressMarker,
   onSelect,
   onMapClick,
   layers,
@@ -197,6 +199,23 @@ export default function CadastralMap({
         <Layer {...HIGHLIGHT_FILL} />
         <Layer {...HIGHLIGHT_LINE} />
       </Source>
+
+      {addressMarker && (
+        <Marker
+          longitude={addressMarker.lng}
+          latitude={addressMarker.lat}
+          anchor="bottom"
+        >
+          <div className="pointer-events-none flex flex-col items-center">
+            <div className="inline-flex h-[40px] w-[40px] items-center justify-center rounded-full border border-gray-300 bg-white shadow-sm">
+              <MapPin size={20} strokeWidth={1.5} className="text-black" />
+            </div>
+            <div className="mt-1 max-w-[220px] rounded border border-gray-200 bg-white px-2 py-1 text-center text-[12px] font-medium leading-4 text-black shadow-sm">
+              {addressMarker.label}
+            </div>
+          </div>
+        </Marker>
+      )}
     </Map>
   )
 }
