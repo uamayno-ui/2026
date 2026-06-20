@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
-import { createLiqPayParams } from '@/lib/payments/liqpay'
+import { assertLiqPayConfigured, createLiqPayParams, isLiqPayConfigurationError } from '@/lib/payments/liqpay'
 import type { OrderType } from '@prisma/client'
 
 // Ціни в копійках
@@ -40,6 +40,18 @@ export async function POST(req: NextRequest) {
   const price = PRICES[type]
   if (!price) {
     return NextResponse.json({ error: 'Невідомий тип замовлення' }, { status: 400 })
+  }
+
+  try {
+    assertLiqPayConfigured()
+  } catch (err) {
+    if (isLiqPayConfigurationError(err)) {
+      return NextResponse.json(
+        { error: 'Оплата тимчасово недоступна. Спробуйте пізніше.' },
+        { status: 503 },
+      )
+    }
+    throw err
   }
 
   // Створити Order у БД
