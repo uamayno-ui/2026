@@ -4,11 +4,16 @@ import { prisma } from '@/lib/prisma'
 
 let _configured = false
 
+function normalizeVapidSubject(value: string | undefined): string {
+  const subject = value?.trim() || 'support@mayno.ua'
+  return subject.toLowerCase().startsWith('mailto:') ? subject : `mailto:${subject}`
+}
+
 function configure() {
   if (_configured) return
   const publicKey  = process.env.VAPID_PUBLIC_KEY
   const privateKey = process.env.VAPID_PRIVATE_KEY
-  const subject    = `mailto:${process.env.VAPID_SUBJECT ?? 'support@mayno.ua'}`
+  const subject    = normalizeVapidSubject(process.env.VAPID_SUBJECT)
 
   if (!publicKey || !privateKey) {
     throw new Error('VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY must be set')
