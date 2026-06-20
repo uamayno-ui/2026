@@ -3,9 +3,36 @@
 
 import crypto from 'crypto'
 
-const PUBLIC_KEY  = process.env.LIQPAY_PUBLIC_KEY  ?? ''
-const PRIVATE_KEY = process.env.LIQPAY_PRIVATE_KEY ?? ''
-const APP_URL     = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+export class LiqPayConfigurationError extends Error {
+  constructor() {
+    super('LiqPay is not configured')
+    this.name = 'LiqPayConfigurationError'
+  }
+}
+
+export function isLiqPayConfigurationError(err: unknown): err is LiqPayConfigurationError {
+  return err instanceof LiqPayConfigurationError
+}
+
+function getLiqPayConfig() {
+  const publicKey  = process.env.LIQPAY_PUBLIC_KEY?.trim() ?? ''
+  const privateKey = process.env.LIQPAY_PRIVATE_KEY?.trim() ?? ''
+
+  if (process.env.NODE_ENV === 'production' && (!publicKey || !privateKey)) {
+    throw new LiqPayConfigurationError()
+  }
+
+  return {
+    publicKey,
+    privateKey,
+    appUrl:  process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
+    sandbox: process.env.LIQPAY_SANDBOX === 'true' ? 1 : 0,
+  }
+}
+
+export function assertLiqPayConfigured() {
+  getLiqPayConfig()
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
@@ -14,9 +41,10 @@ function encodeData(obj: Record<string, unknown>): string {
 }
 
 function makeSignature(data: string): string {
+  const { privateKey } = getLiqPayConfig()
   return crypto
     .createHash('sha1')
-    .update(PRIVATE_KEY + data + PRIVATE_KEY)
+    .update(privateKey + data + privateKey)
     .digest('base64')
 }
 
@@ -34,19 +62,20 @@ export function createLiqPayParams(params: LiqPayOrderParams): {
   data:      string
   signature: string
 } {
+  const config = getLiqPayConfig()
   const payload = {
     version:     '3',
-    public_key:  PUBLIC_KEY,
+    public_key:  config.publicKey,
     action:      'pay',
     amount:      params.amount,
     currency:    'UAH',
     description: params.description,
     order_id:    params.orderId,
-    result_url:  params.resultUrl ?? `${APP_URL}/app/orders`,
-    server_url:  params.serverUrl ?? `${APP_URL}/api/payment/liqpay/webhook`,
+    result_url:  params.resultUrl ?? `${config.appUrl}/app/orders`,
+    server_url:  params.serverUrl ?? `${config.appUrl}/api/payment/liqpay/webhook`,
     language:    'uk',
     // Тестовий режим — прибрати в production!
-    sandbox:     process.env.LIQPAY_SANDBOX === 'true' ? 1 : 0,
+    sandbox:     config.sandbox,
   }
   const data = encodeData(payload)
   return { data, signature: makeSignature(data) }
