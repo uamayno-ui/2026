@@ -9,6 +9,8 @@ const KADNUM_RE = /^\d{10}:\d{2}:\d{3}:\d{4}$/
 
 // Частковий — тільки цифри (юзер ще не ввів двокрапки)
 const DIGITS_RE = /^\d+$/
+const CADASTRAL_INPUT_RE = /^[\d:\s]+$/
+const KADNUM_FORMAT_HINT = 'Введіть кадастровий номер у форматі XXXXXXXXXX:XX:XXX:XXXX'
 
 /**
  * Авто-форматування: "2310100000010010025" → "2310100000:01:001:0025"
@@ -70,14 +72,9 @@ export function useMapSearch({
     setHint(null)
   }, [])
 
-  // setQuery з авто-форматуванням кадастрового номера
   const setQuery = useCallback((v: string) => {
-    // Якщо юзер вводить тільки цифри (і двокрапки) — форматуємо як кадном
-    const stripped = v.replace(/\D/g, '')
-    const isKadnumInput = stripped.length > 0 && /^[\d:]+$/.test(v.trim())
-    const formatted = isKadnumInput ? formatKadnumInput(v) : v
-    setQueryRaw(formatted)
-    if (!formatted.trim()) clearResults()
+    setQueryRaw(v)
+    if (!v.trim()) clearResults()
   }, [clearResults])
 
   // Основний ефект: реагуємо на зміну query
@@ -103,11 +100,16 @@ export function useMapSearch({
           })
           if (res.status === 404) {
             setSuggestions([])
-            setError('Ділянку з таким номером не знайдено в ДЗК')
+            setError('Не знайшли ділянку на мапі. Ви можете замовити перевірку за кадастровим номером.')
             return
           }
           if (!res.ok) throw new Error('Помилка запиту')
           const info = await res.json()
+          if (!Array.isArray(info.center) || !Array.isArray(info.polygon) || info.polygon.length < 3) {
+            setSuggestions([])
+            setError('Не знайшли ділянку на мапі. Ви можете замовити перевірку за кадастровим номером.')
+            return
+          }
           const parcel = dzkToParcel(info)
           setSuggestions([{
             id:    parcel.kadnum,
@@ -131,11 +133,11 @@ export function useMapSearch({
       return
     }
 
-    // ── Частковий кадастровий номер (тільки цифри) → підказка ───────
-    if (DIGITS_RE.test(q)) {
+    // ── Частковий або невалідний кадастровий ввід → підказка ───────
+    if (DIGITS_RE.test(q) || (CADASTRAL_INPUT_RE.test(q) && q.replace(/\D/g, '').length >= 4)) {
       clearResults()
-      if (q.length >= 4) {
-        setHint('Формат: 1234567890:12:345:6789 — продовжуйте вводити')
+      if (q.replace(/\D/g, '').length >= 4) {
+        setHint(KADNUM_FORMAT_HINT)
       }
       return
     }
