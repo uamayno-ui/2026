@@ -160,6 +160,7 @@ export default function SearchInput({
   const inputHeight   = size === 'hero' ? 'h-[64px]' : 'h-[48px]'
   const inputPx       = size === 'hero' ? 'pl-5 pr-2' : 'pl-4 pr-2'
   const inputFontSize = size === 'hero' ? 'text-body-l' : 'text-body'
+  const isKadnumValue = KADNUM_RE.test(query.trim())
 
   return (
     <div className="relative max-w-[720px] mx-auto">
@@ -198,9 +199,9 @@ export default function SearchInput({
           className={[
             'flex-1 min-w-0 h-full',
             'bg-transparent border-0 outline-none',
-            'font-sans placeholder:text-gray-500',
+            'placeholder:text-gray-500',
             'caret-[#22C55E]',
-            inputFontSize,
+            isKadnumValue ? 'font-mono text-[16px] tracking-normal' : ['font-sans', inputFontSize].join(' '),
           ].join(' ')}
           aria-label="Пошук нерухомості"
           aria-autocomplete="list"
