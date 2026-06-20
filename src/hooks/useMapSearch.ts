@@ -171,7 +171,7 @@ export function useMapSearch({
           lng:   r.lng,
           type:  'address' as const,
         })))
-        if (results.length === 0) setError('Адресу не знайдено. Спробуйте детальніше.')
+        if (results.length === 0) setError('Не знайшли адресу. Спробуйте додати місто або область.')
       } catch (e) {
         clearTimeout(timer)
         if ((e as Error).name !== 'AbortError') {

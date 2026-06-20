@@ -55,7 +55,7 @@ function AddressSearchBadge({ status }: { status: AddressSearchStatus }) {
         />
         <div>
           <p className="text-[13px] font-semibold leading-5 text-black">
-            {isLoading && 'Шукаємо адресу…'}
+            {isLoading && 'Шукаємо адресу...'}
             {isFound && 'Знайдено адресу'}
             {status === 'not-found' && 'Не знайшли адресу. Спробуйте додати місто або область.'}
             {status === 'error' && 'Не вдалося виконати адресний пошук. Спробуйте ще раз.'}
