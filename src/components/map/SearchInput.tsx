@@ -50,18 +50,15 @@ export default function SearchInput({
       })
       if (!res.ok) throw new Error()
       const results = await res.json() as {
-        id: number; label: string; lat: number; lng: number
+        id: number; label: string; short?: string; sub?: string; lat: number; lng: number
       }[]
       setSuggestions(results.map((r) => {
-        // display_name: "вулиця Хрещатик, Печерський р-н, Київ, ..."
-        const parts = r.label.split(',').map((p: string) => p.trim())
-        const displayLabel = parts[0] ?? r.label
-        const sub = parts.slice(1, 3).filter(Boolean).join(', ') || 'Україна'
+        const displayLabel = r.short ?? r.label.split(',')[0]?.trim() ?? r.label
         return {
           id: r.id,
           label: r.label,
           displayLabel,
-          sub,
+          sub: r.sub ?? '',
           lat: r.lat,
           lng: r.lng,
         }
@@ -241,7 +238,7 @@ export default function SearchInput({
                   ].join(' ')}>
                     {s.displayLabel}
                   </div>
-                  <div className="text-[13px] text-gray-500 mt-0.5">{s.sub}</div>
+                  {s.sub && <div className="text-[13px] text-gray-500 mt-0.5">{s.sub}</div>}
                 </div>
               </button>
             </li>
