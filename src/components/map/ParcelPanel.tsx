@@ -188,7 +188,7 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
 
           <div className="flex items-center gap-1.5 mt-3 text-[12px] uppercase tracking-[0.03em] text-gray-500 font-medium">
             <Check size={14} strokeWidth={1.5} className="text-success" />
-            Дані з ДЗК · оновлено 01.05.2026
+            Демо-дані. Для офіційних даних потрібне підключення ДЗК.
           </div>
         </section>
 

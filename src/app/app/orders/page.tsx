@@ -21,23 +21,23 @@ const TYPE_META: Record<OrderType, { label: string; icon: typeof FileText; price
 }
 
 const STATUS_META: Record<OrderStatus, { label: string; icon: typeof CheckCircle2; cls: string; bg: string }> = {
-  DONE:       { label: 'Готово',    icon: CheckCircle2, cls: 'text-green',    bg: 'bg-surface-green' },
-  PAID:       { label: 'Формується', icon: Clock,       cls: 'text-gray-500', bg: 'bg-surface-soft' },
-  PROCESSING: { label: 'Обробка',   icon: Clock,        cls: 'text-gray-500', bg: 'bg-surface-soft' },
-  PENDING:    { label: 'Очікує',    icon: Clock,        cls: 'text-gray-400', bg: 'bg-surface-soft' },
-  FAILED:     { label: 'Помилка',   icon: AlertCircle,  cls: 'text-red-500',  bg: 'bg-red-50' },
+  DONE:       { label: 'Демо готово', icon: CheckCircle2, cls: 'text-green',    bg: 'bg-surface-green' },
+  PAID:       { label: 'Демо оплату прийнято', icon: Clock, cls: 'text-gray-500', bg: 'bg-surface-soft' },
+  PROCESSING: { label: 'Демо обробка', icon: Clock,        cls: 'text-gray-500', bg: 'bg-surface-soft' },
+  PENDING:    { label: 'Демо очікує', icon: Clock,        cls: 'text-gray-400', bg: 'bg-surface-soft' },
+  FAILED:     { label: 'Демо помилка', icon: AlertCircle,  cls: 'text-red-500',  bg: 'bg-red-50' },
 }
 
 // ── Mock data (Sprint 3: replace with DB query) ───────────────────────
 const ORDERS = [
-  { id: 'ORD-1047', type: 'DRRP'  as OrderType, kadnum: '3222486200:05:002:0054', date: '2026-05-23', status: 'DONE'       as OrderStatus, price: 300 },
-  { id: 'ORD-1046', type: 'DZK'   as OrderType, kadnum: '3222486200:05:002:0031', date: '2026-05-23', status: 'DONE'       as OrderStatus, price: 100 },
-  { id: 'ORD-1045', type: 'FULL'  as OrderType, kadnum: '8000000000:90:004:0014', date: '2026-05-22', status: 'PROCESSING' as OrderStatus, price: 400 },
-  { id: 'ORD-1044', type: 'NGO'   as OrderType, kadnum: '3222486200:05:002:0012', date: '2026-05-20', status: 'DONE'       as OrderStatus, price: 100 },
-  { id: 'ORD-1043', type: 'PLAN'  as OrderType, kadnum: '3222486200:05:002:0008', date: '2026-05-19', status: 'DONE'       as OrderStatus, price: 100 },
-  { id: 'ORD-1042', type: 'DRRP'  as OrderType, kadnum: '8000000000:82:046:0091', date: '2026-05-18', status: 'DONE'       as OrderStatus, price: 300 },
-  { id: 'ORD-1041', type: 'DZK'   as OrderType, kadnum: '8000000000:82:046:0118', date: '2026-05-15', status: 'FAILED'     as OrderStatus, price: 100 },
-  { id: 'ORD-1040', type: 'FULL'  as OrderType, kadnum: '3222486200:05:002:0042', date: '2026-05-14', status: 'DONE'       as OrderStatus, price: 400 },
+  { id: 'DEMO-1047', type: 'DRRP'  as OrderType, kadnum: '0000000000:00:000:0001', date: '2026-05-23', status: 'DONE'       as OrderStatus, price: 300 },
+  { id: 'DEMO-1046', type: 'DZK'   as OrderType, kadnum: '0000000000:00:000:0002', date: '2026-05-23', status: 'DONE'       as OrderStatus, price: 100 },
+  { id: 'DEMO-1045', type: 'FULL'  as OrderType, kadnum: '0000000000:00:000:0003', date: '2026-05-22', status: 'PROCESSING' as OrderStatus, price: 400 },
+  { id: 'DEMO-1044', type: 'NGO'   as OrderType, kadnum: '0000000000:00:000:0004', date: '2026-05-20', status: 'DONE'       as OrderStatus, price: 100 },
+  { id: 'DEMO-1043', type: 'PLAN'  as OrderType, kadnum: '0000000000:00:000:0005', date: '2026-05-19', status: 'DONE'       as OrderStatus, price: 100 },
+  { id: 'DEMO-1042', type: 'DRRP'  as OrderType, kadnum: '0000000000:00:000:0006', date: '2026-05-18', status: 'DONE'       as OrderStatus, price: 300 },
+  { id: 'DEMO-1041', type: 'DZK'   as OrderType, kadnum: '0000000000:00:000:0007', date: '2026-05-15', status: 'FAILED'     as OrderStatus, price: 100 },
+  { id: 'DEMO-1040', type: 'FULL'  as OrderType, kadnum: '0000000000:00:000:0008', date: '2026-05-14', status: 'DONE'       as OrderStatus, price: 400 },
 ]
 
 // ── Page ──────────────────────────────────────────────────────────────
@@ -51,7 +51,10 @@ export default function OrdersPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-[22px] md:text-h2 font-bold tracking-[-0.02em]">Замовлення</h1>
+        <div>
+          <h1 className="text-[22px] md:text-h2 font-bold tracking-[-0.02em]">Демо-замовлення</h1>
+          <p className="text-[13px] text-gray-500 mt-1">Це приклади вигляду кабінету, не реальні замовлення.</p>
+        </div>
         <Link
           href="/map"
           className="shrink-0 inline-flex items-center gap-2 h-[40px] px-5 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
@@ -64,9 +67,9 @@ export default function OrdersPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Всього',          value: total },
-          { label: 'Виконано',        value: doneCount },
-          { label: 'Витрачено',       value: `${totalSpent} грн` },
+          { label: 'Прикладів',       value: total },
+          { label: 'Демо готово',     value: doneCount },
+          { label: 'Демо сума',       value: `${totalSpent} грн` },
         ].map(({ label, value }) => (
           <div key={label} className="bg-white rounded-lg border border-gray-200 px-4 py-3.5 text-center">
             <p className="text-[22px] font-bold tracking-[-0.02em] leading-none mb-1">{value}</p>
@@ -123,18 +126,20 @@ export default function OrdersPage() {
                       {order.status === 'DONE' && (
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1.5 h-[28px] px-3 rounded-full border border-gray-300 text-[12px] font-medium text-gray-600 hover:border-black hover:text-black transition-colors"
+                          disabled
+                          className="inline-flex items-center gap-1.5 h-[28px] px-3 rounded-full border border-gray-300 text-[12px] font-medium text-gray-400 cursor-not-allowed"
                         >
                           <Download size={12} strokeWidth={1.5} />
-                          PDF
+                          Недоступно в демо
                         </button>
                       )}
                       {order.status === 'FAILED' && (
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1.5 h-[28px] px-3 rounded-full border border-gray-300 text-[12px] font-medium text-gray-500 hover:border-black hover:text-black transition-colors"
+                          disabled
+                          className="inline-flex items-center gap-1.5 h-[28px] px-3 rounded-full border border-gray-300 text-[12px] font-medium text-gray-400 cursor-not-allowed"
                         >
-                          Повторити
+                          Недоступно в демо
                         </button>
                       )}
                     </td>

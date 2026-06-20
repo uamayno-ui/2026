@@ -8,8 +8,8 @@ export const metadata: Metadata = { title: 'Моніторинг' }
 const OBJECTS = [
   {
     id: 'm1',
-    kadnum: '3222486200:05:002:0054',
-    label: 'Бровари — житлова',
+    kadnum: '0000000000:00:000:0001',
+    label: 'Демо-ділянка 1',
     lastChecked: '2026-05-24',
     lastChanged: null,
     status: 'ok' as const,
@@ -18,8 +18,8 @@ const OBJECTS = [
   },
   {
     id: 'm2',
-    kadnum: '8000000000:90:004:0014',
-    label: 'Київ, Печерськ',
+    kadnum: '0000000000:00:000:0003',
+    label: 'Демо-ділянка 2',
     lastChecked: '2026-05-24',
     lastChanged: '2026-05-20',
     status: 'changed' as const,
@@ -28,7 +28,7 @@ const OBJECTS = [
   },
   {
     id: 'm3',
-    kadnum: '3222486200:05:002:0031',
+    kadnum: '0000000000:00:000:0002',
     label: null,
     lastChecked: '2026-05-23',
     lastChanged: null,
@@ -49,7 +49,10 @@ export default function MonitoringPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-[22px] md:text-h2 font-bold tracking-[-0.02em]">Моніторинг</h1>
+        <div>
+          <h1 className="text-[22px] md:text-h2 font-bold tracking-[-0.02em]">Демо-моніторинг</h1>
+          <p className="text-[13px] text-gray-500 mt-1">Реальний моніторинг буде доступний після підключення ДРРП/API.</p>
+        </div>
         <Link
           href="/map"
           className="shrink-0 inline-flex items-center gap-2 h-[40px] px-5 rounded-full bg-black text-white text-small font-medium no-underline hover:bg-black-hover transition-colors"
@@ -63,9 +66,9 @@ export default function MonitoringPage() {
       <div className="bg-white rounded-lg border border-gray-200 p-5 flex items-center justify-between gap-4">
         <div>
           <p className="text-[14px] font-semibold mb-0.5">
-            Об&apos;єктів на моніторингу: <span className="text-black">{activeCount} / {PLAN_LIMIT}</span>
+            Демо-об&apos;єктів на моніторингу: <span className="text-black">{activeCount} / {PLAN_LIMIT}</span>
           </p>
-          <p className="text-[13px] text-gray-500">19 грн/міс за об&apos;єкт · Personal план</p>
+          <p className="text-[13px] text-gray-500">Приклад вигляду кабінету. Оплата не активна.</p>
         </div>
         <div className="w-36 h-2 bg-surface-soft rounded-full overflow-hidden flex-shrink-0">
           <div
@@ -139,8 +142,8 @@ export default function MonitoringPage() {
                 </p>
               </div>
               <div>
-                <p className="text-gray-400 text-[11px] uppercase tracking-wide mb-0.5">Оплачено до</p>
-                <p className="font-medium">{new Date(obj.paidUntil).toLocaleDateString('uk-UA')}</p>
+                <p className="text-gray-400 text-[11px] uppercase tracking-wide mb-0.5">Статус демо</p>
+                <p className="font-medium">не активний</p>
               </div>
             </div>
 
@@ -148,7 +151,7 @@ export default function MonitoringPage() {
             {obj.status === 'changed' && (
               <div className="mt-3 flex items-center justify-between bg-warning/10 rounded px-4 py-3 gap-4">
                 <p className="text-[13px] text-warning font-medium">
-                  Зафіксовано зміну в реєстрі 20.05.2026. Замовте актуальний витяг.
+                  Приклад сповіщення. Реальний моніторинг буде доступний після підключення ДРРП/API.
                 </p>
                 <Link
                   href={`/parcel/${obj.kadnum}`}
@@ -169,8 +172,7 @@ export default function MonitoringPage() {
         <div>
           <p className="text-[14px] font-semibold mb-1">Як працює моніторинг</p>
           <p className="text-[13px] text-gray-500 leading-5">
-            Щодня перевіряємо ДРРП і ДЗК на зміни. При появі нового обтяження, іпотеки,
-            заборони чи зміни власника — надсилаємо сповіщення на email і Telegram.
+            У демо показано приклад інтерфейсу. Реальні перевірки ДРРП і ДЗК потребують підключення API та договорів.
           </p>
         </div>
       </div>

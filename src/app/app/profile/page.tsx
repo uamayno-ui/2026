@@ -5,20 +5,23 @@ export const metadata: Metadata = { title: 'Профіль' }
 
 // Sprint 3: replace with getCurrentUser() from session
 const MOCK_USER = {
-  fullName:  'Нечепуренко Олександр Сергійович',
-  rnokpp:    '••••••••••', // маскуємо в UI
-  email:     'alex@mayno.ua',
-  phone:     '+380 98 ••• •• 12',
-  authMethod: 'Bank ID НБУ',
-  plan:      'Personal',
-  memberSince: '2026-04-15',
+  fullName:  'Демо-користувач',
+  rnokpp:    'Не підключено',
+  email:     'demo@example.test',
+  phone:     'Не підключено',
+  authMethod: 'Після авторизації',
+  plan:      'Демо',
+  memberSince: 'Не підключено',
 }
 
 export default function ProfilePage() {
   return (
     <div className="flex flex-col gap-6">
 
-      <h1 className="text-[22px] md:text-h2 font-bold tracking-[-0.02em]">Профіль</h1>
+      <div>
+        <h1 className="text-[22px] md:text-h2 font-bold tracking-[-0.02em]">Демо-профіль</h1>
+        <p className="text-[13px] text-gray-500 mt-1">Реальні дані зʼявляться після авторизації через Bank ID.</p>
+      </div>
 
       {/* Identity */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -27,7 +30,7 @@ export default function ProfilePage() {
           <h2 className="text-[15px] font-semibold">Особисті дані</h2>
           <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-green font-medium uppercase tracking-wide">
             <Shield size={11} strokeWidth={1.5} />
-            Верифіковано
+            Демо-профіль
           </span>
         </div>
         <dl className="divide-y divide-gray-50">
@@ -37,7 +40,7 @@ export default function ProfilePage() {
             { label: 'Email',            value: MOCK_USER.email },
             { label: 'Телефон',          value: MOCK_USER.phone },
             { label: 'Спосіб входу',     value: MOCK_USER.authMethod },
-            { label: 'Учасник з',        value: new Date(MOCK_USER.memberSince).toLocaleDateString('uk-UA', { month: 'long', year: 'numeric' }) },
+            { label: 'Учасник з',        value: MOCK_USER.memberSince },
           ].map(({ label, value, mono }) => (
             <div key={label} className="flex px-6 py-3.5 gap-4">
               <dt className="text-[13px] text-gray-500 w-40 flex-shrink-0 pt-px">{label}</dt>
@@ -47,8 +50,8 @@ export default function ProfilePage() {
         </dl>
         <div className="px-6 py-4 border-t border-gray-100 bg-surface-soft">
           <p className="text-[12px] text-gray-500 leading-5">
-            Дані отримані з Bank ID НБУ і захищені ЕЦП. Ми не зберігаємо ваш пароль або приватний ключ.
-            Змінити ПІБ або РНОКПП можна лише через повторну верифікацію.
+            Реальні дані зʼявляться після авторизації через Bank ID.
+            У демо-кабінеті персональні дані не підключені.
           </p>
         </div>
       </div>
@@ -90,7 +93,7 @@ export default function ProfilePage() {
         <div className="flex-1">
           <p className="text-[14px] font-semibold mb-1">Підключити Telegram</p>
           <p className="text-[13px] text-gray-500 mb-3">
-            Отримуйте миттєві сповіщення про зміни в реєстрах прямо в Telegram.
+            Приклад налаштування. Реальні сповіщення будуть доступні після підключення моніторингу.
           </p>
           <button
             type="button"
