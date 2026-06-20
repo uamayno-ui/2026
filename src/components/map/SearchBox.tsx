@@ -4,6 +4,8 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import { Search, X, Loader2, MapPin, Hash, AlertCircle, Info } from 'lucide-react'
 import type { SearchSuggestion } from '@/hooks/useMapSearch'
 
+const KADNUM_RE = /^\d{10}:\d{2}:\d{3}:\d{4}$/
+
 interface SearchBoxProps {
   value:       string
   onChange:    (v: string) => void
@@ -26,6 +28,7 @@ export default function SearchBox({
   const inputRef    = useRef<HTMLInputElement>(null)
   const listRef     = useRef<HTMLUListElement>(null)
 
+  const isKadnumValue = KADNUM_RE.test(value.trim())
   const showDropdown = focused && (suggestions.length > 0 || !!error || !!hint)
 
   // Reset active index on new suggestions
@@ -72,9 +75,10 @@ export default function SearchBox({
           autoComplete="off"
           spellCheck={false}
           className={[
-            'w-full h-11 pl-10 pr-9 text-small bg-white border rounded transition-all duration-150',
+            'w-full h-11 pl-10 pr-9 bg-white border rounded transition-all duration-150',
             'caret-[#22C55E]',   // зелений мигаючий курсор при введенні
             'focus:outline-none',
+            isKadnumValue ? 'font-mono text-[13px] tracking-normal' : 'font-sans text-small',
             focused
               ? 'border-black border-[1.5px] shadow-[0_0_0_4px_rgba(212,212,216,0.4)]'
               : 'border-gray-300 hover:border-gray-500',
