@@ -102,7 +102,7 @@ export default function SearchInput({
     const val = q.trim() || query.trim()
     if (!val) return
     setOpen(false)
-    router.push(`/map?q=${encodeURIComponent(val)}`)
+    router.push(`/map?query=${encodeURIComponent(val)}`)
   }, [query, router])
 
   // ── Keyboard navigation ─────────────────────────────────────────────

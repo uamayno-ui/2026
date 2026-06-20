@@ -7,7 +7,7 @@ import { Plus, Minus, Locate, Globe, Filter, X } from 'lucide-react'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { Parcel, MapLayers, LayerKey } from '@/types/map'
 import { KYIV_CENTER, dzkToParcel } from '@/lib/mapData'
-import { useMapSearch } from '@/hooks/useMapSearch'
+import { useMapSearch, type SearchSuggestion } from '@/hooks/useMapSearch'
 import TopBar from '@/components/layout/TopBar'
 import LeftPanel from '@/components/map/LeftPanel'
 import ParcelPanel from '@/components/map/ParcelPanel'
@@ -25,6 +25,50 @@ const CadastralMap = dynamic(() => import('@/components/map/CadastralMap'), {
 const DEFAULT_LAYERS: MapLayers = {
   cadastr: true,
   satellite: false,
+}
+
+const KADNUM_RE = /^\d{10}:\d{2}:\d{3}:\d{4}$/
+
+type AddressSearchStatus = 'idle' | 'loading' | 'found' | 'not-found' | 'error'
+
+interface AddressMarker {
+  lat: number
+  lng: number
+  label: string
+}
+
+function AddressSearchBadge({ status }: { status: AddressSearchStatus }) {
+  if (status === 'idle') return null
+
+  const isFound = status === 'found'
+  const isLoading = status === 'loading'
+
+  return (
+    <div className="absolute left-4 right-4 top-[72px] z-[8] md:left-1/2 md:right-auto md:top-6 md:w-[360px] md:-translate-x-1/2">
+      <div className="flex items-start gap-2.5 rounded border border-gray-200 bg-white px-4 py-3 shadow-sm">
+        <span
+          className={[
+            'mt-1 h-2 w-2 shrink-0 rounded-full',
+            isFound ? 'bg-green' : 'bg-gray-400',
+            isLoading ? 'animate-pulse' : '',
+          ].join(' ')}
+        />
+        <div>
+          <p className="text-[13px] font-semibold leading-5 text-black">
+            {isLoading && 'Шукаємо адресу…'}
+            {isFound && 'Знайдено адресу'}
+            {status === 'not-found' && 'Не знайшли адресу. Спробуйте додати місто або область.'}
+            {status === 'error' && 'Не вдалося виконати адресний пошук. Спробуйте ще раз.'}
+          </p>
+          {isFound && (
+            <p className="mt-0.5 text-[12px] leading-4 text-gray-500">
+              Адресний пошук. Це не витяг з ДЗК.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ── Map controls (zoom / navigate) ───────────────────────────────────
@@ -67,11 +111,13 @@ function MapControls({
 // ── Main client component ─────────────────────────────────────────────
 export default function MapClient() {
   const searchParams = useSearchParams()
-  const initialQuery = searchParams.get('q') ?? ''
+  const initialQuery = searchParams.get('query') ?? searchParams.get('q') ?? ''
 
   const [selected, setSelected]       = useState<Parcel | null>(null)
   const [layers, setLayers]           = useState<MapLayers>(DEFAULT_LAYERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [addressMarker, setAddressMarker] = useState<AddressMarker | null>(null)
+  const [addressStatus, setAddressStatus] = useState<AddressSearchStatus>('idle')
   // Ідентифікація кліком — стан завантаження
   const [identifying, setIdentifying] = useState(false)
 
@@ -87,12 +133,98 @@ export default function MapClient() {
     onParcelFound: setSelected,
     onFlyTo: flyTo,
   })
+  const {
+    setQuery: setSearchQuery,
+    selectSuggestion: selectSearchSuggestion,
+    clearResults: clearSearchResults,
+  } = search
 
-  // Sync initial query from URL ?q= (once, after mount)
+  const runAddressSearch = useCallback(async (rawQuery: string) => {
+    const query = rawQuery.trim()
+    if (!query || KADNUM_RE.test(query)) {
+      setAddressMarker(null)
+      setAddressStatus('idle')
+      return
+    }
+
+    setSelected(null)
+    setAddressMarker(null)
+    setAddressStatus('loading')
+
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
+      if (!res.ok) throw new Error('search failed')
+
+      const results = await res.json() as {
+        id: number
+        label: string
+        short?: string
+        lat: number
+        lng: number
+      }[]
+      const first = results.find((item) => Number.isFinite(item.lat) && Number.isFinite(item.lng))
+
+      if (!first) {
+        setAddressStatus('not-found')
+        return
+      }
+
+      setAddressMarker({
+        lat: first.lat,
+        lng: first.lng,
+        label: first.short ?? query,
+      })
+      setAddressStatus('found')
+      flyTo(first.lat, first.lng, 16)
+    } catch {
+      setAddressStatus('error')
+    }
+  }, [flyTo])
+
+  const handleSearchSelect = useCallback((suggestion: SearchSuggestion) => {
+    selectSearchSuggestion(suggestion)
+    if (suggestion.type === 'address') {
+      setSelected(null)
+      setAddressMarker({
+        lat: suggestion.lat,
+        lng: suggestion.lng,
+        label: suggestion.label,
+      })
+      setAddressStatus('found')
+      return
+    }
+    setAddressMarker(null)
+    setAddressStatus('idle')
+  }, [selectSearchSuggestion])
+
+  const handleSearchClear = useCallback(() => {
+    clearSearchResults()
+    setAddressMarker(null)
+    setAddressStatus('idle')
+  }, [clearSearchResults])
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value)
+    setAddressMarker(null)
+    setAddressStatus('idle')
+  }, [setSearchQuery])
+
+  const mapSearch = {
+    ...search,
+    setQuery: handleSearchChange,
+    selectSuggestion: handleSearchSelect,
+    clearResults: handleSearchClear,
+  }
+
+  // Sync initial query from URL ?query= (legacy ?q= is also accepted)
   useEffect(() => {
-    if (initialQuery) search.setQuery(initialQuery)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (!initialQuery) return
+    const timer = setTimeout(() => {
+      setSearchQuery(initialQuery)
+      void runAddressSearch(initialQuery)
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [initialQuery, runAddressSearch, setSearchQuery])
 
   const toggleLayer = useCallback((key: LayerKey) => {
     setLayers((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -139,7 +271,7 @@ export default function MapClient() {
           <LeftPanel
             layers={layers}
             onToggleLayer={toggleLayer}
-            search={search}
+            search={mapSearch}
           />
         </aside>
 
@@ -147,11 +279,14 @@ export default function MapClient() {
         <div className="flex-1 relative bg-surface-blue overflow-hidden">
           <CadastralMap
             highlightParcel={selected}
+            addressMarker={addressMarker}
             onSelect={handleSelect}
             onMapClick={handleMapClick}
             layers={layers}
             mapRef={mapRef}
           />
+
+          <AddressSearchBadge status={addressStatus} />
 
           {/* Identify loading indicator */}
           {identifying && (
@@ -162,7 +297,7 @@ export default function MapClient() {
           )}
 
           {/* Hint badge */}
-          {!selected && (
+          {!selected && addressStatus === 'idle' && (
             <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 bg-white rounded px-4 py-2.5 shadow text-[13px] z-[5]">
               <span className="w-2 h-2 rounded-full bg-green flex-shrink-0" />
               Клацніть будь-яку ділянку або введіть кадастровий номер
@@ -178,7 +313,13 @@ export default function MapClient() {
           <div className="flex md:hidden items-center gap-2 absolute top-0 left-0 right-0 z-[5] px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
             <input
               value={search.query}
-              onChange={(e) => search.setQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  void runAddressSearch(search.query)
+                }
+              }}
               placeholder="Адреса або кадастровий №"
               className="h-[40px] flex-1 rounded border border-gray-300 pl-4 pr-3 text-small focus:border-black focus:outline-none"
             />
@@ -252,7 +393,7 @@ export default function MapClient() {
             <LeftPanel
               layers={layers}
               onToggleLayer={toggleLayer}
-              search={search}
+              search={mapSearch}
             />
           </aside>
         </div>
