@@ -100,14 +100,14 @@ export function useMapSearch({
           })
           if (res.status === 404) {
             setSuggestions([])
-            setError('Не знайшли ділянку на мапі. Ви можете замовити перевірку за кадастровим номером.')
+            setError('Не знайшли ділянку на мапі. Перевірте формат кадастрового номера або уточніть дані.')
             return
           }
           if (!res.ok) throw new Error('Помилка запиту')
           const info = await res.json()
           if (!Array.isArray(info.center) || !Array.isArray(info.polygon) || info.polygon.length < 3) {
             setSuggestions([])
-            setError('Не знайшли ділянку на мапі. Ви можете замовити перевірку за кадастровим номером.')
+            setError('Не знайшли ділянку на мапі. Перевірте формат кадастрового номера або уточніть дані.')
             return
           }
           const parcel = dzkToParcel(info)
