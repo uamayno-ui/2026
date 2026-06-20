@@ -1,11 +1,29 @@
 // POST /api/payment/liqpay/webhook — LiqPay payment callback
 import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
-import { verifyWebhook, parseWebhook, mapLiqPayStatus } from '@/lib/payments/liqpay'
+import {
+  assertLiqPayConfigured,
+  isLiqPayConfigurationError,
+  verifyWebhook,
+  parseWebhook,
+  mapLiqPayStatus,
+} from '@/lib/payments/liqpay'
 import { prisma } from '@/lib/prisma'
 import { processOrder } from '@/lib/orders/processor'
 
 export async function POST(req: NextRequest) {
+  try {
+    assertLiqPayConfigured()
+  } catch (err) {
+    if (isLiqPayConfigurationError(err)) {
+      return NextResponse.json(
+        { error: 'Оплата тимчасово недоступна. Спробуйте пізніше.' },
+        { status: 503 },
+      )
+    }
+    throw err
+  }
+
   const formData = await req.formData()
   const data      = formData.get('data')      as string
   const signature = formData.get('signature') as string
