@@ -6,8 +6,22 @@ const BASE_URL = 'https://e.land.gov.ua'
 
 let _token: { value: string; expiresAt: number } | null = null
 
+export class DzkProviderUnavailableError extends Error {
+  constructor(message = 'DZK provider is not configured') {
+    super(message)
+    this.name = 'DzkProviderUnavailableError'
+  }
+}
+
+export function assertDzkConfigured() {
+  if (!process.env.DZK_CLIENT_ID?.trim() || !process.env.DZK_CLIENT_SECRET?.trim()) {
+    throw new DzkProviderUnavailableError()
+  }
+}
+
 // ── OAuth2: отримати access token ────────────────────────────────────
 async function getAccessToken(): Promise<string> {
+  assertDzkConfigured()
   if (_token && Date.now() < _token.expiresAt - 30_000) return _token.value
 
   const res = await fetch(`${BASE_URL}/oauth/v2/token`, {
@@ -21,7 +35,7 @@ async function getAccessToken(): Promise<string> {
     cache: 'no-store',
   })
 
-  if (!res.ok) throw new Error(`ДЗК OAuth error: ${res.status}`)
+  if (!res.ok) throw new DzkProviderUnavailableError(`DZK OAuth error: ${res.status}`)
   const data = await res.json()
 
   _token = {
