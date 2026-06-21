@@ -131,6 +131,8 @@ export default function CadastralMap({
 
   const handleClick = useCallback(
     (e: MapMouseEvent) => {
+      if (!layers.cadastr) return
+
       // 1. Клік по mock-полігону (demo ділянки в центрі Києва)
       const id = e.features?.[0]?.properties?.id as string | undefined
       const found = PARCELS.find((p) => p.id === id)
@@ -141,7 +143,7 @@ export default function CadastralMap({
       // 2. Клік по WMS-шару або порожньому місцю → identify через WFS
       onMapClick?.(e.lngLat.lat, e.lngLat.lng)
     },
-    [onSelect, onMapClick],
+    [layers.cadastr, onSelect, onMapClick],
   )
 
   if (!TOKEN) return <NoToken />
@@ -151,71 +153,81 @@ export default function CadastralMap({
     : 'mapbox://styles/mapbox/light-v11'
 
   return (
-    <Map
-      ref={ref}
-      mapboxAccessToken={TOKEN}
-      initialViewState={{
-        longitude: KYIV_CENTER[1],
-        latitude:  KYIV_CENTER[0],
-        zoom: 14,
-      }}
-      mapStyle={mapStyle}
-      style={{ width: '100%', height: '100%' }}
-      interactiveLayerIds={['parcels-fill']}
-      onClick={handleClick}
-    >
-      {/* ── Cadastral WMS overlay ── */}
+    <div className="relative h-full w-full">
+      <Map
+        ref={ref}
+        mapboxAccessToken={TOKEN}
+        initialViewState={{
+          longitude: KYIV_CENTER[1],
+          latitude:  KYIV_CENTER[0],
+          zoom: 14,
+        }}
+        mapStyle={mapStyle}
+        style={{ width: '100%', height: '100%' }}
+        interactiveLayerIds={layers.cadastr ? ['parcels-fill'] : []}
+        onClick={handleClick}
+      >
+        {/* ── Cadastral WMS overlay ── */}
+        {layers.cadastr && (
+          <>
+            <Source
+              id="cadastral-wms"
+              type="raster"
+              tiles={[
+                '/api/wms' +
+                '?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1' +
+                '&LAYERS=kadastr&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=true' +
+                '&HEIGHT=256&WIDTH=256&SRS=EPSG%3A3857&BBOX={bbox-epsg-3857}',
+              ]}
+              tileSize={256}
+            />
+            <Layer {...WMS_LAYER} />
+
+            {/* ── Decorative background parcels ── */}
+            <Source id="deco" type="geojson" data={decoGeoJSON}>
+              <Layer {...DECO_FILL} />
+              <Layer {...DECO_LINE} />
+            </Source>
+
+            {/* ── Mock interactive parcels (for demo click handling) ── */}
+            <Source id="parcels" type="geojson" data={parcelsGeoJSON}>
+              <Layer {...PARCELS_FILL} />
+              <Layer {...PARCELS_LINE} />
+            </Source>
+          </>
+        )}
+
+        {/* ── Highlight: виділена ділянка (будь-яка — WFS або mock) ── */}
+        {layers.cadastr && (
+          <Source id="highlight" type="geojson" data={highlightGeoJSON}>
+            <Layer {...HIGHLIGHT_FILL} />
+            <Layer {...HIGHLIGHT_LINE} />
+          </Source>
+        )}
+
+        {addressMarker && (
+          <Marker
+            longitude={addressMarker.lng}
+            latitude={addressMarker.lat}
+            anchor="bottom"
+          >
+            <div className="pointer-events-none flex flex-col items-center">
+              <div className="inline-flex h-[40px] w-[40px] items-center justify-center rounded-full border border-gray-300 bg-white shadow-sm">
+                <MapPin size={20} strokeWidth={1.5} className="text-black" />
+              </div>
+              <div className="mt-1 max-w-[220px] rounded border border-gray-200 bg-white px-2 py-1 text-center text-[12px] font-medium leading-4 text-black shadow-sm">
+                {addressMarker.label}
+              </div>
+            </div>
+          </Marker>
+        )}
+      </Map>
+
       {layers.cadastr && (
-        <>
-          <Source
-            id="cadastral-wms"
-            type="raster"
-            tiles={[
-              '/api/wms' +
-              '?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1' +
-              '&LAYERS=kadastr&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=true' +
-              '&HEIGHT=256&WIDTH=256&SRS=EPSG%3A3857&BBOX={bbox-epsg-3857}',
-            ]}
-            tileSize={256}
-          />
-          <Layer {...WMS_LAYER} />
-        </>
+        <div className="pointer-events-none absolute bottom-6 left-4 z-[6] max-w-[280px] rounded border border-gray-300 bg-white px-3 py-2 text-[12px] font-medium leading-4 text-gray-800 md:left-6">
+          Шар мапи. Це не витяг з ДЗК.
+        </div>
       )}
-
-      {/* ── Decorative background parcels ── */}
-      <Source id="deco" type="geojson" data={decoGeoJSON}>
-        <Layer {...DECO_FILL} />
-        <Layer {...DECO_LINE} />
-      </Source>
-
-      {/* ── Mock interactive parcels (for demo click handling) ── */}
-      <Source id="parcels" type="geojson" data={parcelsGeoJSON}>
-        <Layer {...PARCELS_FILL} />
-        <Layer {...PARCELS_LINE} />
-      </Source>
-
-      {/* ── Highlight: виділена ділянка (будь-яка — WFS або mock) ── */}
-      <Source id="highlight" type="geojson" data={highlightGeoJSON}>
-        <Layer {...HIGHLIGHT_FILL} />
-        <Layer {...HIGHLIGHT_LINE} />
-      </Source>
-
-      {addressMarker && (
-        <Marker
-          longitude={addressMarker.lng}
-          latitude={addressMarker.lat}
-          anchor="bottom"
-        >
-          <div className="pointer-events-none flex flex-col items-center">
-            <div className="inline-flex h-[40px] w-[40px] items-center justify-center rounded-full border border-gray-300 bg-white shadow-sm">
-              <MapPin size={20} strokeWidth={1.5} className="text-black" />
-            </div>
-            <div className="mt-1 max-w-[220px] rounded border border-gray-200 bg-white px-2 py-1 text-center text-[12px] font-medium leading-4 text-black shadow-sm">
-              {addressMarker.label}
-            </div>
-          </div>
-        </Marker>
-      )}
-    </Map>
+    </div>
   )
 }
