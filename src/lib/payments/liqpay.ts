@@ -93,8 +93,8 @@ export function verifyWebhook(data: string, signature: string): boolean {
 export interface LiqPayWebhookPayload {
   order_id:   string
   status:     'success' | 'failure' | 'error' | 'reversed' | 'sandbox'
-  payment_id: number
-  amount:     number
+  payment_id: number | string
+  amount:     number | string
   currency:   string
   description: string
 }
@@ -109,8 +109,8 @@ export function mapLiqPayStatus(
   status: string,
 ): 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED' {
   switch (status) {
-    case 'success':
-    case 'sandbox':  return 'SUCCESS'
+    case 'success':  return 'SUCCESS'
+    case 'sandbox':  return process.env.NODE_ENV === 'production' ? 'FAILED' : 'SUCCESS'
     case 'reversed': return 'REFUNDED'
     case 'failure':
     case 'error':    return 'FAILED'
