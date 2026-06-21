@@ -23,6 +23,44 @@ function getDzkExcerptType(type: OrderType): 9 | 12 | 48 | null {
   }
 }
 
+function getApplicant(user: { fullName: string | null; rnokpp: string | null }) {
+  if (!user.fullName || !user.rnokpp) {
+    throw new Error('Bank ID identity is required for this registry service')
+  }
+
+  const [lastName = '', firstName = '', middleName = ''] = user.fullName.split(' ')
+  return { lastName, firstName, middleName, rnokpp: user.rnokpp }
+}
+
+function requirePdfUrl(pdfUrl: string | null | undefined, service: string): string {
+  if (!pdfUrl) {
+    throw new Error(`${service} did not return a PDF artifact`)
+  }
+  return pdfUrl
+}
+
+async function orderDzkDocument({
+  kadnum,
+  excerptType,
+  applicant,
+}: {
+  kadnum: string
+  excerptType: 9 | 12 | 48
+  applicant: ReturnType<typeof getApplicant>
+}): Promise<string> {
+  const excerpt = await orderDzkExcerpt({ kadnum, excerptType, applicant })
+
+  if (excerpt.status === 'ERROR') {
+    throw new Error(`DZK returned ERROR for ${kadnum}`)
+  }
+
+  const pdfUrl = excerpt.status === 'PROCESSING'
+    ? await pollDzkStatus(excerpt.requestId, 90_000)
+    : excerpt.pdfUrl
+
+  return requirePdfUrl(pdfUrl, 'DZK')
+}
+
 // ── Process single order ──────────────────────────────────────────────
 export async function processOrder(orderId: string): Promise<void> {
   const order = await prisma.order.findUnique({
@@ -40,76 +78,73 @@ export async function processOrder(orderId: string): Promise<void> {
 
   try {
     let pdfUrl: string | null = null
+    let rawJson: Prisma.InputJsonValue | undefined
 
     const dzkType = getDzkExcerptType(order.type)
 
     // ── DZK / PLAN / NGO ─────────────────────────────────────────────
-    if (dzkType !== null && order.user.fullName && order.user.rnokpp) {
-      const nameParts = order.user.fullName.split(' ')
-      const excerpt = await orderDzkExcerpt({
+    if (dzkType !== null) {
+      pdfUrl = await orderDzkDocument({
         kadnum:      order.kadnum,
         excerptType: dzkType,
-        applicant: {
-          lastName:   nameParts[0] ?? '',
-          firstName:  nameParts[1] ?? '',
-          middleName: nameParts[2] ?? '',
-          rnokpp:     order.user.rnokpp,
-        },
+        applicant:   getApplicant(order.user),
       })
-
-      // Поллінг статусу (макс 90 сек)
-      if (excerpt.status === 'PROCESSING') {
-        pdfUrl = await pollDzkStatus(excerpt.requestId, 90_000)
-      } else {
-        pdfUrl = excerpt.pdfUrl ?? null
-      }
     }
 
     // ── DRRP ─────────────────────────────────────────────────────────
     else if (order.type === 'DRRP') {
       const result = await orderDrrpExcerpt(order.kadnum)
-      pdfUrl = result?.pdfUrl ?? null
+      if (!result || result.status !== 'DONE') {
+        throw new Error('DRRP excerpt is not ready')
+      }
+      pdfUrl = requirePdfUrl(result.pdfUrl, 'DRRP')
     }
 
-    // ── FULL (DZK + DRRP + AI-аналіз) — запускаємо паралельно ─────────
+    // ── FULL (DZK + DRRP + AI-аналіз) ────────────────────────────────
     else if (order.type === 'FULL') {
-      const [dzk, drrp, drrpData] = await Promise.allSettled([
-        order.user.fullName && order.user.rnokpp
-          ? orderDzkExcerpt({
-              kadnum:      order.kadnum,
-              excerptType: EXCERPT_TYPE.DZK,
-              applicant: {
-                lastName:   order.user.fullName.split(' ')[0] ?? '',
-                firstName:  order.user.fullName.split(' ')[1] ?? '',
-                middleName: order.user.fullName.split(' ')[2] ?? '',
-                rnokpp:     order.user.rnokpp!,
-              },
-            })
-          : Promise.resolve(null),
+      const applicant = getApplicant(order.user)
+      const [dzkPdfUrl, drrp, drrpRecord] = await Promise.all([
+        orderDzkDocument({
+          kadnum:      order.kadnum,
+          excerptType: EXCERPT_TYPE.DZK,
+          applicant,
+        }),
         orderDrrpExcerpt(order.kadnum),
         getDrrpByKadnum(order.kadnum),
       ])
 
-      // Для FULL зберігаємо URL ДРРП (основний документ з правами)
-      if (drrp.status === 'fulfilled' && drrp.value?.pdfUrl) {
-        pdfUrl = drrp.value.pdfUrl
+      if (!drrp || drrp.status !== 'DONE') {
+        throw new Error('DRRP excerpt is not ready for FULL report')
       }
-      void dzk // DZK зберігаємо окремим механізмом (Sprint 4: ZIP)
 
-      // AI-аналіз ризиків (fire-and-forget зберігання в rawJson)
-      const drrpRecord = drrpData.status === 'fulfilled' ? drrpData.value : null
-      analyzeParcelRisk({
+      if (!drrpRecord) {
+        throw new Error('DRRP source data is required for FULL report')
+      }
+
+      pdfUrl = requirePdfUrl(drrp.pdfUrl, 'FULL')
+
+      const analysis = await analyzeParcelRisk({
         kadnum: order.kadnum,
-        drrp:   drrpRecord ?? undefined,
+        drrp:   drrpRecord,
       })
-        .then((analysis) =>
-          prisma.order.update({
-            where: { id: orderId },
-            data:  { rawJson: { aiAnalysis: analysis } as unknown as Prisma.InputJsonValue },
-          })
-        )
-        .catch((err) => console.error('[processor] AI analysis failed:', err))
+
+      rawJson = {
+        sourceStatus: {
+          dzk:  'available',
+          drrp: 'available',
+          ai:   'available',
+        },
+        dzkPdfUrl,
+        drrpRecord,
+        aiAnalysis: analysis,
+      } as unknown as Prisma.InputJsonValue
     }
+
+    else {
+      throw new Error(`Unsupported automated order type: ${order.type}`)
+    }
+
+    pdfUrl = requirePdfUrl(pdfUrl, order.type)
 
     // ── Зберегти результат ────────────────────────────────────────────
     const pdfExpiry = new Date()
@@ -121,11 +156,12 @@ export async function processOrder(orderId: string): Promise<void> {
         status:    'DONE',
         pdfUrl,
         pdfExpiry,
+        ...(rawJson ? { rawJson } : {}),
       },
     })
 
     // ── Email ─────────────────────────────────────────────────────────
-    if (order.user.email) {
+    if (order.user.email && pdfUrl) {
       const typeLabels: Record<string, string> = {
         DZK:  'Витяг з ДЗК',
         DRRP: 'Витяг з ДРРП',
@@ -139,7 +175,7 @@ export async function processOrder(orderId: string): Promise<void> {
         kadnum:    order.kadnum,
         orderId:   order.id,
         pdfExpiry,
-      }).catch(console.error)
+      }).catch((err) => console.error('[processor] sendOrderReady failed:', err))
     }
 
   } catch (err) {
