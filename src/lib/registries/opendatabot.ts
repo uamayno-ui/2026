@@ -3,11 +3,28 @@
 // Використовувати ЛИШЕ після підписання NDA і договору!
 
 const BASE_URL = 'https://opendatabot.ua/api/v3'
-const API_KEY  = process.env.OPENDATABOT_API_KEY ?? ''
+
+export class OpendatabotProviderUnavailableError extends Error {
+  constructor(message = 'Opendatabot provider is not configured') {
+    super(message)
+    this.name = 'OpendatabotProviderUnavailableError'
+  }
+}
+
+export function assertOpendatabotConfigured() {
+  if (!process.env.OPENDATABOT_API_KEY?.trim()) {
+    throw new OpendatabotProviderUnavailableError()
+  }
+}
+
+function getApiKey(): string {
+  assertOpendatabotConfigured()
+  return process.env.OPENDATABOT_API_KEY!.trim()
+}
 
 function headers() {
   return {
-    Authorization:  `Bearer ${API_KEY}`,
+    Authorization:  `Bearer ${getApiKey()}`,
     'Content-Type': 'application/json',
   }
 }
@@ -44,18 +61,13 @@ export interface DrrpRecord {
 export async function getDrrpByKadnum(
   kadnum: string,
 ): Promise<DrrpRecord | null> {
-  if (!API_KEY) {
-    console.warn('[opendatabot] API key not set — returning null')
-    return null
-  }
-
   try {
     const res = await fetch(
       `${BASE_URL}/realty/record?cadNumber=${encodeURIComponent(kadnum)}`,
       { headers: headers(), cache: 'no-store' },
     )
     if (res.status === 404) return null
-    if (!res.ok) throw new Error(`Opendatabot error: ${res.status}`)
+    if (!res.ok) throw new OpendatabotProviderUnavailableError(`Opendatabot error: ${res.status}`)
 
     const data = await res.json()
 
@@ -69,7 +81,7 @@ export async function getDrrpByKadnum(
     return filtered
   } catch (err) {
     console.error('[opendatabot] getDrrpByKadnum:', err)
-    return null
+    throw err
   }
 }
 
@@ -79,18 +91,17 @@ export async function orderDrrpExcerpt(kadnum: string): Promise<{
   status:     'PENDING' | 'DONE' | 'ERROR'
   pdfUrl?:    string
 } | null> {
-  if (!API_KEY) return null
-
   try {
     const res = await fetch(`${BASE_URL}/realty/excerpt`, {
       method: 'POST',
       headers: headers(),
       body: JSON.stringify({ cadNumber: kadnum }),
     })
-    if (!res.ok) throw new Error(`Opendatabot excerpt error: ${res.status}`)
+    if (res.status === 404) return null
+    if (!res.ok) throw new OpendatabotProviderUnavailableError(`Opendatabot excerpt error: ${res.status}`)
     return res.json()
   } catch (err) {
     console.error('[opendatabot] orderDrrpExcerpt:', err)
-    return null
+    throw err
   }
 }
