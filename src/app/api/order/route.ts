@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma'
 import { assertLiqPayConfigured, createLiqPayParams, isLiqPayConfigurationError } from '@/lib/payments/liqpay'
 import type { OrderType } from '@prisma/client'
 
+const CADASTRAL_NUMBER_RE = /^\d{10}:\d{2}:\d{3}:\d{4}$/
+const REGISTRY_UNAVAILABLE_MESSAGE = 'Послуга тимчасово недоступна. Підключення до реєстру ще не активне.'
+
 // Ціни в копійках
 const PRICES: Record<string, number> = {
   DZK:          10000,  // 100 грн
@@ -24,6 +27,25 @@ const DESCRIPTIONS: Record<string, string> = {
   OWNER_SEARCH: 'Пошук власника',
 }
 
+function requiredProviderEnv(type: string): string[] {
+  switch (type) {
+    case 'DZK':
+    case 'NGO':
+    case 'PLAN':
+      return ['DZK_CLIENT_ID', 'DZK_CLIENT_SECRET']
+    case 'DRRP':
+      return ['OPENDATABOT_API_KEY']
+    case 'FULL':
+      return ['DZK_CLIENT_ID', 'DZK_CLIENT_SECRET', 'OPENDATABOT_API_KEY', 'ANTHROPIC_API_KEY']
+    default:
+      return []
+  }
+}
+
+function missingProviderEnv(type: string): string[] {
+  return requiredProviderEnv(type).filter((key) => !process.env[key]?.trim())
+}
+
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser()
   if (!user) {
@@ -32,14 +54,36 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
   const { type, kadnum } = body as { type: string; kadnum: string }
+  const normalizedKadnum = kadnum?.trim()
 
-  if (!type || !kadnum) {
+  if (!type || !normalizedKadnum) {
     return NextResponse.json({ error: 'type і kadnum обов\'язкові' }, { status: 400 })
+  }
+
+  if (!CADASTRAL_NUMBER_RE.test(normalizedKadnum)) {
+    return NextResponse.json({ error: 'Перевірте формат кадастрового номера.' }, { status: 400 })
   }
 
   const price = PRICES[type]
   if (!price) {
     return NextResponse.json({ error: 'Невідомий тип замовлення' }, { status: 400 })
+  }
+
+  if (type === 'OWNER_SEARCH') {
+    return NextResponse.json({ error: 'Послуга доступна через ручний запит.' }, { status: 422 })
+  }
+
+  const missingEnv = missingProviderEnv(type)
+  if (missingEnv.length > 0) {
+    console.warn(`[order] provider env missing for ${type}: ${missingEnv.join(', ')}`)
+    return NextResponse.json({ error: REGISTRY_UNAVAILABLE_MESSAGE }, { status: 503 })
+  }
+
+  if (['DZK', 'NGO', 'PLAN', 'FULL'].includes(type) && (!user.fullName || !user.rnokpp)) {
+    return NextResponse.json(
+      { error: 'Для цієї послуги потрібна авторизація через Bank ID.' },
+      { status: 422 },
+    )
   }
 
   try {
@@ -60,7 +104,7 @@ export async function POST(req: NextRequest) {
       userId:    user.id,
       type:      type as OrderType,
       status:    'PENDING',
-      kadnum,
+      kadnum:    normalizedKadnum,
       pricePaid: price,
     },
   })
@@ -77,7 +121,7 @@ export async function POST(req: NextRequest) {
   })
 
   // Генерувати LiqPay checkout params
-  const description = `${DESCRIPTIONS[type] ?? type}: ${kadnum}`
+  const description = `${DESCRIPTIONS[type] ?? type}: ${normalizedKadnum}`
   const liqpay = createLiqPayParams({
     orderId:     order.id,
     amount:      price / 100,
