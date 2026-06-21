@@ -15,8 +15,8 @@ interface LeftPanelProps {
   search:         UseMapSearchReturn
 }
 
-const LAYER_CONFIG: { key: LayerKey; icon: React.ReactNode; label: string }[] = [
-  { key: 'cadastr',   icon: <Globe    size={18} strokeWidth={1.5} />, label: 'Кадастр'  },
+const LAYER_CONFIG: { key: LayerKey; icon: React.ReactNode; label: string; sub?: string }[] = [
+  { key: 'cadastr',   icon: <Globe    size={18} strokeWidth={1.5} />, label: 'Кадастр (шар мапи)', sub: 'Не витяг з ДЗК' },
   { key: 'satellite', icon: <Satellite size={18} strokeWidth={1.5} />, label: 'Супутник' },
 ]
 
@@ -65,13 +65,16 @@ function Toggle({ active, onToggle }: { active: boolean; onToggle: () => void })
   )
 }
 
-function ToggleRow({ icon, label, active, onToggle }: {
-  icon: React.ReactNode; label: string; active: boolean; onToggle: () => void
+function ToggleRow({ icon, label, sub, active, onToggle }: {
+  icon: React.ReactNode; label: string; sub?: string; active: boolean; onToggle: () => void
 }) {
   return (
     <label className="flex items-center gap-3 px-5 py-2 cursor-pointer text-small text-black hover:bg-surface-soft transition-colors">
       <span className="text-gray-500">{icon}</span>
-      <span className="flex-1">{label}</span>
+      <span className="flex-1 min-w-0">
+        <span className="block">{label}</span>
+        {sub && <span className="block text-[11px] leading-4 text-gray-500">{sub}</span>}
+      </span>
       <Toggle active={active} onToggle={onToggle} />
     </label>
   )
@@ -98,8 +101,8 @@ export default function LeftPanel({ layers, onToggleLayer, search }: LeftPanelPr
       {/* Scrollable content */}
       <div className="overflow-y-auto flex-1">
         <Section title="Шари мапи" defaultOpen>
-          {LAYER_CONFIG.map(({ key, icon, label }) => (
-            <ToggleRow key={key} icon={icon} label={label} active={layers[key]} onToggle={() => onToggleLayer(key)} />
+          {LAYER_CONFIG.map(({ key, icon, label, sub }) => (
+            <ToggleRow key={key} icon={icon} label={label} sub={sub} active={layers[key]} onToggle={() => onToggleLayer(key)} />
           ))}
         </Section>
 

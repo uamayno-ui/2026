@@ -39,6 +39,8 @@ const SERVICES = [
   },
 ]
 
+const DEMO_KADNUM_RE = /^0{10}:00:000:\d{4}$/
+
 function InfoRow({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex justify-between items-baseline gap-4 py-2.5">
@@ -96,6 +98,9 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
   const router = useRouter()
   const [ordering, setOrdering] = useState<string | null>(null)
   const [copied, setCopied]     = useState(false)
+  const sourceLabel = DEMO_KADNUM_RE.test(parcel.kadnum)
+    ? 'Демо-дані. Це не витяг з ДЗК.'
+    : 'Дані доступного шару мапи. Це не витяг з ДЗК.'
 
   // ── Place order via API ────────────────────────────────────────────
   const handleOrder = useCallback(async (serviceId: string) => {
@@ -188,7 +193,7 @@ export default function ParcelPanel({ parcel, onClose, onOrder, mobile = false }
 
           <div className="flex items-center gap-1.5 mt-3 text-[12px] uppercase tracking-[0.03em] text-gray-500 font-medium">
             <Check size={14} strokeWidth={1.5} className="text-success" />
-            Демо-дані. Для офіційних даних потрібне підключення ДЗК.
+            {sourceLabel}
           </div>
         </section>
 
